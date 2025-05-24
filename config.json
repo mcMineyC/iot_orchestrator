@@ -1,0 +1,40 @@
+{
+  "host": "0.0.0.0",
+  "port": 1883,
+  "enabledIntegrations": [
+    {
+      "integrationName": "greete",
+      "name": "greety",
+      "id": "greeter",
+      "config": {
+        "name": "John"
+      }
+    }
+  ],
+  "knownIntegrations": {
+    "greeter": {
+      "name": "greeter",
+      "manage": true,
+      "command": "node greeter.js",
+      "args": ["name"],
+      "schema": [
+        {
+          "path": "/name",
+          "type": "data"
+        },
+        {
+          "path": "/names",
+          "type": "data"
+        },
+        {
+          "path": "/greet",
+          "type": "command"
+        },
+        {
+          "path": "/hello",
+          "type": "command"
+        }
+      ]
+    }
+  }
+}
