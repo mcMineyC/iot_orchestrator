@@ -133,7 +133,7 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 		log.Printf("Failed to start integration %s: %v", entry.Name, err)
 		publishStatus(client, entry.Name, "error")
 	}
-	<-cmd.Process.Wait()
+	cmd.Process.Wait()
 	publishStatus(client, entry.Name, "stopped")
 }
 
