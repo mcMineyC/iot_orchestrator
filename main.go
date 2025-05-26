@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -127,7 +128,9 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 	log.Printf("Monitoring %s, defined by %s", entry.Name, definition.Name)
 	jsonData, _ := json.Marshal(definition)
 	configArg := fmt.Sprintf("--config=\"%s\")", string(jsonData))
-	cmd := exec.Command(definition.Command, configArg)
+	cmd := exec.Command(strings.Split(definition.Command, " ")[0])
+	programArgs := strings.Split(definition.Command, " ")[1:]
+	cmd.Args = append(programArgs, configArg)
 	err := cmd.Start()
 	if err != nil {
 		log.Printf("Failed to start integration %s: %v", entry.Name, err)
