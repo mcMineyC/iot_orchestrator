@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -41,8 +42,9 @@ type IntegrationDefinition struct {
 }
 
 type IntegrationSchema struct {
-	Path string `json:"path"`
-	Type string `json:"type"`
+	Path      string `json:"path"`
+	Type      string `json:"type"`
+	Fetchable bool   `json:"fetchable"`
 }
 
 type IntegrationStatus struct {
@@ -115,7 +117,7 @@ func startIntegrations(config *MainConfig, client *mqtt.Client) {
 	log.Printf("We have %d integrations available", len(config.KnownIntegrations))
 	log.Printf("We need to start %d", len(config.EnabledIntegrations))
 	for _, integration := range config.EnabledIntegrations {
-		definition := config.KnownIntegrations[integration.Id]
+		definition := config.KnownIntegrations[integration.IntegrationName]
 		if definition == nil {
 			log.Printf("When processing enabled integration %s:", integration.Id)
 			log.Fatalf("\tIntegration %s is not available", integration.IntegrationName)
@@ -126,18 +128,58 @@ func startIntegrations(config *MainConfig, client *mqtt.Client) {
 
 func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEntry, client *mqtt.Client) {
 	log.Printf("Monitoring %s, defined by %s", entry.Name, definition.Name)
-	jsonData, _ := json.Marshal(definition)
-	configArg := fmt.Sprintf("--config=\"%s\")", string(jsonData))
-	cmd := exec.Command(strings.Split(definition.Command, " ")[0])
-	programArgs := strings.Split(definition.Command, " ")[1:]
-	cmd.Args = append(programArgs, configArg)
-	err := cmd.Start()
+	jsonData, _ := json.Marshal(entry) // the entry for the config is more useful than the definition
+	configArg := string(jsonData)
+	jsonData, _ = json.Marshal(definition)
+	definitionArg := string(jsonData)
+	commandParts := strings.Split(definition.Command, " ")
+	cmd := exec.Command(commandParts[0])
+	programArgs := commandParts[1:]
+	cmd.Args = append(cmd.Args, programArgs...)
+	cmd.Args = append(cmd.Args, configArg)
+	cmd.Args = append(cmd.Args, definitionArg)
+
+	// for _, arg := range cmd.Args {
+	// 	fmt.Printf("[command args] %s\n", arg)
+	// }
+
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Printf("Failed to start integration %s: %v", entry.Name, err)
-		publishStatus(client, entry.Name, "error")
+		log.Fatal(err)
 	}
-	cmd.Process.Wait()
-	publishStatus(client, entry.Name, "stopped")
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	// Read stdout in a goroutine
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			fmt.Printf("[%s][out]: %s\n", entry.Id, scanner.Text())
+		}
+	}()
+
+	// Read stderr in a goroutine
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			fmt.Printf("[%s][err]: %s\n", entry.Id, scanner.Text())
+		}
+	}()
+
+	if err := cmd.Wait(); err != nil {
+		log.Printf("Command finished with error: %v", err)
+		publishStatus(client, entry.Id, "error")
+		return
+	}
+	publishStatus(client, entry.Id, "stopped")
 }
 
 func publishStatus(client *mqtt.Client, name string, status string) {

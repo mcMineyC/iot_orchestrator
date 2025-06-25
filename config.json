@@ -3,9 +3,9 @@
   "port": 1883,
   "enabledIntegrations": [
     {
-      "integrationName": "greete",
-      "name": "greety",
-      "id": "greeter",
+      "name": "My Simple Greeter",
+      "integrationName": "greeter",
+      "id": "test-greeter",
       "config": {
         "name": "John"
       }
@@ -13,26 +13,35 @@
   ],
   "knownIntegrations": {
     "greeter": {
-      "name": "greeter",
+      "name": "Greeter",
       "manage": true,
-      "command": "node greeter.js",
+      "command": "node greete.js",
       "args": ["name"],
       "schema": [
         {
           "path": "/name",
-          "type": "data"
+          "type": "data",
+          "fetchable": true
         },
         {
           "path": "/names",
-          "type": "data"
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/greeting",
+          "type": "data",
+          "fetchable": false
         },
         {
           "path": "/greet",
-          "type": "command"
+          "type": "command",
+          "fetchable": false
         },
         {
           "path": "/hello",
-          "type": "command"
+          "type": "command",
+          "fetchable": false
         }
       ]
     }
