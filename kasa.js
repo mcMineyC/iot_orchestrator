@@ -1,12 +1,27 @@
-const mqtt = require("mqtt");
+import mqtt from "mqtt";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 const { Client } = require("tplink-smarthome-api");
 const kasa = new Client();
-const fs = require("fs");
-const client = mqtt.connect("mqtt://127.0.0.1:1883");
-config = JSON.parse(process.argv[2]);
-definition = JSON.parse(fs.readFileSync("config.json", "utf8"));
+import fs from "fs";
+const config = JSON.parse(process.argv[2]);
+var definition = JSON.parse(fs.readFileSync("config.json", "utf8"));
 definition = definition.knownIntegrations[config.integrationName];
 const clientId = config.id;
+try {
+  // Device initialization times out mqtt
+  device = await kasa.getDevice({ host: config.config.ip });
+  console.log("Device initialized");
+} catch (error) {
+  console.error("Failed to get device:", error);
+}
+const client = mqtt.connect("mqtt://127.0.0.1:1883", {
+  clientId: `kasa-${clientId}-${Date.now()}`,
+  clean: true,
+  reconnectPeriod: 1000,
+});
+
+var device;
 
 client.on("connect", () => {
   console.log("Connected to broker");
@@ -56,7 +71,7 @@ client.on("message", async (topic, message) => {
   if (path.split("/")[0] == "getdata") {
     // eg /$id/getdata/<data_path>
     console.log("Received request for data from ", path.split("/").slice(1));
-    var data = getData(path.split("/").slice(1).join("/"));
+    var data = await getData(path.split("/").slice(1).join("/"));
     if (data == null) {
       console.log("Data path not found: ", path.split("/").slice(1).join("/"));
       return;
@@ -85,13 +100,14 @@ client.on("message", async (topic, message) => {
 ///  data fetch logic  ///
 /////////////////////////
 
-function getData(path) {
+async function getData(path) {
   console.log("getData called with path:", "/" + path);
   switch ("/" + path) {
-    case "/name":
-      return config.config.name;
-    case "/names":
-      return ["Bob", "Frank", "Alice", "Charlie", "David", "Eve"];
+    case "/lightState":
+      var data = await device.lighting.getLightState();
+      return data;
+    case "/powerState":
+      return (await device.getPowerState()) ? "on" : "off";
     default:
       return null;
   }

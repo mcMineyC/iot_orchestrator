@@ -2,5 +2,6 @@
   "dependencies": {
     "mqtt": "^5.13.0",
     "tplink-smarthome-api": "^5.0.0"
-  }
+  },
+  "type": "module"
 }
