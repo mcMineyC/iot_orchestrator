@@ -9,6 +9,15 @@
       "config": {
         "name": "John"
       }
+    },
+    {
+      "name": "Bedside Bulb",
+      "integrationName": "kasa",
+      "id": "bed-bulb",
+      "config": {
+        "ip": "192.168.20.22",
+        "type": "bulb"
+      }
     }
   ],
   "knownIntegrations": {
