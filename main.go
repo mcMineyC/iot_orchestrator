@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -50,6 +51,7 @@ type IntegrationSchema struct {
 type IntegrationStatus struct {
 	Name   string `json:"name"`
 	Status string `json:"status"`
+	Error  string `json:"error"`
 }
 
 var integrationStatus = make(chan map[string]string)
@@ -88,7 +90,7 @@ func main() {
 	log.Println("IoT Orchestrator initialization complete")
 	log.Println("Starting MQTT server...")
 	go mqttServer()
-	mqtt.DEBUG = log.New(os.Stdout, "", 0)
+	mqtt.DEBUG = log.New(io.Discard, "", 0)
 	mqtt.ERROR = log.New(os.Stdout, "", 0)
 	opts := mqtt.NewClientOptions().AddBroker("tcp://localhost:1883").SetClientID("orchestrator")
 	opts.SetKeepAlive(2 * time.Second)
@@ -176,24 +178,28 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 
 	if err := cmd.Wait(); err != nil {
 		log.Printf("Command finished with error: %v", err)
-		publishStatus(client, entry.Id, "error")
+		publishStatus(client, entry.Id, "error", err.Error())
 		return
 	}
-	publishStatus(client, entry.Id, "stopped")
+	publishStatus(client, entry.Id, "stopped", nil)
 }
 
-func publishStatus(client *mqtt.Client, name string, status string) {
+func publishStatus(client *mqtt.Client, name string, status string, error interface{}) {
 	jsonStatus := IntegrationStatus{
 		Name:   name,
 		Status: status,
+		Error: func() string {
+			if error == nil {
+				return ""
+			}
+			return fmt.Sprintf("%s", error)
+		}(),
 	}
 	jsonData, _ := json.Marshal(jsonStatus)
 	(*client).Publish("status", 0, false, jsonData)
 }
 
 func mqttServer() {
-	// Create signals channel to run server until interrupted
-
 	// Create the new MQTT Server.
 	server := mqttserver.New(nil)
 
