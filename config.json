@@ -15,7 +15,7 @@
     "greeter": {
       "name": "Greeter",
       "manage": true,
-      "command": "node greete.js",
+      "command": "node greeter.js",
       "args": ["name"],
       "schema": [
         {
@@ -40,6 +40,54 @@
         },
         {
           "path": "/hello",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
+    "kasa": {
+      "name": "TP-Link Kasa",
+      "manage": true,
+      "command": "node kas.js",
+      "args": ["ip", "type"],
+      "schema": [
+        {
+          "path": "/powerState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/lightState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/power/on",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/power/off",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/brightness",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/temperature",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/color",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/default",
           "type": "command",
           "fetchable": false
         }
