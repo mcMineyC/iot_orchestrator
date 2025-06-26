@@ -48,7 +48,7 @@
     "kasa": {
       "name": "TP-Link Kasa",
       "manage": true,
-      "command": "node kas.js",
+      "command": "node kasa.js",
       "args": ["ip", "type"],
       "schema": [
         {
@@ -65,6 +65,11 @@
           "path": "/temperatureRange",
           "type": "data",
           "fetchable": true
+        },
+        {
+          "path": "/power/toggle",
+          "type": "command",
+          "fetchable": false
         },
         {
           "path": "/power/on",
