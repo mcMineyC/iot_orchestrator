@@ -219,6 +219,4 @@ func mqttServer() {
 			log.Fatal(err)
 		}
 	}()
-
-	// Cleanup
 }

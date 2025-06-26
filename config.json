@@ -18,6 +18,24 @@
         "ip": "192.168.20.22",
         "type": "bulb"
       }
+    },
+    {
+      "name": "Closet Lights",
+      "integrationName": "kasa",
+      "id": "closet-light-plug",
+      "config": {
+        "ip": "192.168.30.37",
+        "type": "plug"
+      }
+    },
+    {
+      "name": "Broom Closet Ending",
+      "integrationName": "wled",
+      "id": "broom-closet-ending",
+      "config": {
+        "ip": "192.168.30.32",
+        "maxBrightness": 200
+      }
     }
   ],
   "knownIntegrations": {
@@ -106,7 +124,7 @@
           "fetchable": false
         },
         {
-          "path": "/light/default",
+          "path": "/light/preset",
           "type": "command",
           "fetchable": false
         }
