@@ -69,6 +69,11 @@
           "path": "/hello",
           "type": "command",
           "fetchable": false
+        },
+        {
+          "path": "/stop",
+          "type": "command",
+          "fetchable": false
         }
       ]
     },

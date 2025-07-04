@@ -3,34 +3,6 @@ import fs from "fs";
 import WebSocket from "ws";
 const ws = new WebSocket("ws://192.168.30.32/ws");
 
-ws.on("error", console.error);
-
-ws.on("open", function open() {
-  console.log("WebSocket connection established!");
-});
-
-var state = {};
-
-ws.on("message", function message(data) {
-  try {
-    var msg = JSON.parse(data);
-    if (typeof msg.success !== "undefined" && msg.success)
-      console.log("Command completed successfully");
-    else if (typeof msg.success !== "undefined" && !msg.success)
-      console.log("Command failed");
-    else if (typeof msg.state !== "undefined") state = msg.state;
-
-    if (state.state) state = state.state;
-  } catch (e) {
-    console.error("Failed to parse state:", e);
-  }
-  console.log(
-    "Current state is %s, preset %s",
-    state.on ? "ON" : "OFF",
-    state.ps,
-  );
-});
-
 // Gets name of current file without extension
 import { fileURLToPath } from "url";
 import path from "path";
@@ -48,6 +20,54 @@ const client = mqtt.connect("mqtt://127.0.0.1:1883", {
   clientId: `${fileName}-${clientId}-${Date.now()}`, // unique id
   clean: true, // idk this helps it work
   reconnectPeriod: 1000,
+});
+
+ws.on("error", console.error);
+
+ws.on("open", function open() {
+  console.log("WebSocket connection established!");
+});
+
+var presets = await fetchPresets(); // Fetch presets on startup
+
+var state = {
+  on: false,
+  bri: 0,
+  ps: -1, // preset index, -1 means no preset
+};
+
+ws.on("message", function message(data) {
+  try {
+    var msg = JSON.parse(data);
+    // console.log(msg);
+    if (typeof msg.success !== "undefined" && msg.success)
+      console.log("Command completed successfully");
+    else if (typeof msg.success !== "undefined" && !msg.success)
+      console.log("Command failed");
+
+    if (typeof msg.state !== "undefined") {
+      state = msg.state;
+      client.publish(`/${config.id}/powerState`, state.on ? "on" : "off");
+      client.publish(
+        `/${config.id}/lightState`,
+        JSON.stringify({
+          brightness: state.bri,
+          preset: state.ps,
+          presetName:
+            state.ps > 0 && state.ps < presets.length
+              ? presets[state.ps].name
+              : "",
+        }),
+      );
+    }
+  } catch (e) {
+    console.error("Failed to parse state:", e);
+  }
+  console.log(
+    "Current state is %s, preset %s",
+    state.on ? "ON" : "OFF",
+    state.ps,
+  );
 });
 
 client.on("connect", () => {
@@ -132,6 +152,7 @@ client.on("message", async (topic, message) => {
     client.publish(`/${clientId}/error`, `Unknown command "/${path}"`);
   }
 });
+client.publish(`/orchestrator/integration/${clientId}/online`, "true");
 //
 //
 //
@@ -144,8 +165,6 @@ client.on("message", async (topic, message) => {
 //////////////////////////
 ///  data fetch logic  ///
 /////////////////////////
-var presets = await fetchPresets();
-
 async function getData(path) {
   // All under the /$clientID/getdata topic
   console.log("getData called with path:", "/" + path);
@@ -153,11 +172,22 @@ async function getData(path) {
     case "/powerState":
       return state.on ? "on" : "off";
     case "/lightState":
-      return {
+      var tempState = {
         brightness: state.bri,
         preset: state.ps,
-        presetName: presets[state.ps].name,
+        presetName: "",
       };
+      if(presets == undefined) {
+        console.error("Presets not loaded yet, fetching...");
+        presets = await fetchPresets();
+      }
+      console.log("We have %d presets", presets.length);
+      if (tempState.preset > 0 && tempState.preset < presets.length) {
+        tempState.presetName = presets[tempState.preset].name;
+      }else{
+        console.warn("Preset index out of bounds, using empty name");
+      }
+      return tempState;
     case "/presets":
       return await fetchPresets();
     default:
@@ -284,6 +314,7 @@ async function fetchPresets() {
         name: preset.n || `Preset ${index + 1}`,
       });
     });
+    console.log("Fetched presets:", presetList.length);
     return presetList;
   } catch (error) {
     console.error("Failed to fetch presets:", error);

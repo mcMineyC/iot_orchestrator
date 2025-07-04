@@ -133,6 +133,7 @@ client.on("message", async (topic, message) => {
     client.publish(`/${clientId}/error`, `Unknown command "/${path}"`);
   }
 });
+client.publish(`/orchestrator/integration/${clientId}/online`, "true");
 //
 //
 //
@@ -146,16 +147,33 @@ client.on("message", async (topic, message) => {
 ///  data fetch logic  ///
 /////////////////////////
 
+device.on("lightstate-update", (state) => {
+  console.log("Light state updated:", state);
+  client.publish(`/${clientId}/lightState`, JSON.stringify(state));
+});
+device.on("lightstate-on", (state) => {
+  console.log("Power state updated:", state);
+  client.publish(`/${clientId}/powerState`, "on");
+});
+device.on("lightstate-off", (state) => {
+  console.log("Power state updated:", state);
+  client.publish(`/${clientId}/powerState`, "off");
+});
+
 async function getData(path) {
   // All under the /$clientID/getdata topic
   console.log("getData called with path:", "/" + path);
   switch ("/" + path) {
     case "/lightState":
+      if(device.deviceType != "bulb")
+        break
       var data = await device.lighting.getLightState();
       return data;
     case "/powerState":
       return (await device.getPowerState()) ? "on" : "off";
     case "/temperatureRange":
+      if(device.deviceType != "bulb")
+        break
       return device.colorTemperatureRange;
     default:
       return null; // Return null if nothing needs to be returned

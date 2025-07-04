@@ -127,4 +127,9 @@ const commandHandlers = {
         data: `Hello, ${config.config.name}!`,
       };
   },
+  "/stop": (topic, message) => {
+    console.log("Stopping...");
+    if (typeof message === "number") process.exit(message);
+    else process.exit(0);
+  },
 };
