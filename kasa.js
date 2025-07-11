@@ -24,9 +24,10 @@ try {
     }
   ).groups.code;
   switch (code) {
+    case "ENETUNREACH":
     case "EHOSTUNREACH":
       console.error("Error: Device not online");
-      process.exit(404);
+      process.exit(44);
       break;
     case "ECONNREFUSED":
     case "ECONNRESET":
@@ -37,7 +38,7 @@ try {
     default:
       if (code.includes("TCP Timeout")) {
         console.log("Error: Device not online");
-        process.exit(404);
+        process.exit(44);
       } else {
         console.error("Unknown error:", code);
         process.exit(1);
@@ -70,7 +71,7 @@ client.on("connect", () => {
       });
     } else if (schema.type == "command") {
       // Subscribe to all command paths
-      client.subscribe(`/${config.id}${schema.path}`, async (err) => {
+ client.subscribe(`/${config.id}${schema.path}`, async (err) => {
         if (!err && err != null) {
           console.log(
             "Failed to subscribe to",

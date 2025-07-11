@@ -9,6 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"regexp"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -54,15 +56,24 @@ type IntegrationSchema struct {
 }
 
 type IntegrationStatus struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
-	Error  string `json:"error"`
+	Name             string `json:"name"`
+	Status           string `json:"status"`
+	ErrorCode        int    `json:"error"`
+	ErrorDescription string `json:"errorDescription"`
 }
 
 var statusMap = make(map[string]*IntegrationStatus) // string is the id of integration
 var mainState = MainState{
 	Integrations:      statusMap,
 	IntegrationStates: make(map[string]map[string]any),
+}
+
+var exitStatusRegex = regexp.MustCompile(`exit status (?<code>\d+)`)
+var exitStatusDescriptor = map[int]string{
+	44:  "device offline",
+	113: "device misconfigured",
+	2:   "manual intervention",
+	1:   "unknown",
 }
 
 var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
@@ -117,7 +128,7 @@ func main() {
 	// 	log.Println("Received status message:", string(msg.Payload()))
 	// })
 
-	c.Subscribe("/orchestrator/getdata/status", 0, func(client mqtt.Client, msg mqtt.Message) {
+	c.Subscribe("/orchestrator/getdata/fullStatus", 0, func(client mqtt.Client, msg mqtt.Message) {
 		// Convert statusMap to JSON
 		jsonData, err := json.Marshal(statusMap)
 		if err != nil {
@@ -126,7 +137,7 @@ func main() {
 			return
 		}
 		// Publish the JSON response
-		client.Publish("/orchestrator/status", 0, false, jsonData)
+		client.Publish("/orchestrator/fullStatus", 0, false, jsonData)
 	})
 
 	c.Subscribe("/orchestrator/getdata/state", 0, func(client mqtt.Client, msg mqtt.Message) {
@@ -169,9 +180,14 @@ func main() {
 	// 	client.Publish("/orchestrator/status", 0, false, jsonData)
 	// })
 
-	c.Subscribe("/orchestrator/interation/start", 0, func(client mqtt.Client, msg mqtt.Message) {
+	c.Subscribe("/orchestrator/integration/start", 0, func(client mqtt.Client, msg mqtt.Message) {
 		integrationId := string(msg.Payload())
-		monitorIntegration(config.KnownIntegrations["integration_name"], &IntegrationEntry{Id: integrationId}, &client)
+		for _, entry := range config.EnabledIntegrations {
+			if entry.Id == integrationId {
+				log.Printf("Starting integration %s", integrationId)
+				go monitorIntegration(config.KnownIntegrations[entry.IntegrationName], entry, &c)
+			}
+		}
 	})
 
 	go startIntegrations(config, &c)
@@ -241,11 +257,14 @@ func fetchIntegrationData(definition *IntegrationDefinition, entry *IntegrationE
 
 func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEntry, client *mqtt.Client) {
 	statusMap[entry.Id] = &IntegrationStatus{
-		Name:   entry.Name,
-		Status: "starting",
-		Error:  "",
+		Name:             entry.Name,
+		Status:           "starting",
+		ErrorDescription: "",
+		ErrorCode:        0,
 	}
-	log.Printf("Monitoring %s, defined by %s", entry.Name, definition.Name)
+	log.Printf("Monitoring %s, defined by %s",
+		entry.Name,
+		definition.Name)
 	jsonData, _ := json.Marshal(entry) // the entry for the config is more useful than the definition
 	configArg := string(jsonData)
 	jsonData, _ = json.Marshal(definition)
@@ -291,14 +310,14 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 			fmt.Printf("[%s][err]: %s\n", entry.Id, scanner.Text())
 		}
 	}()
-	publishStatus(client, entry, "running", nil)
+	publishStatus(client, entry, "running", nil, 0)
 	// Subscribe to stop command and keep track of the subscription
 	stopTopic := fmt.Sprintf("/orchestrator/integration/%s/stop", entry.Id)
 	token := (*client).Subscribe(stopTopic, 0, func(client mqtt.Client, message mqtt.Message) {
 		if err := cmd.Process.Kill(); err != nil {
 			log.Printf("Failed to kill process: %v", err)
 		}
-		publishStatus(&client, entry, "stopped", nil)
+		publishStatus(&client, entry, "stopped", nil, 2)
 	})
 
 	// Wait for subscription to complete
@@ -316,17 +335,25 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 
 	if err := cmd.Wait(); err != nil {
 		log.Printf("Command finished with error: %v", err)
-		publishStatus(client, entry, "stopped", err.Error())
+		match := exitStatusRegex.FindStringSubmatch(err.Error())
+		code := 1
+		if len(match) > 0 {
+			codei64, _ := strconv.ParseInt(match[1], 10, 8)
+			code = int(codei64)
+			log.Printf("Integration stopped because %s", exitStatusDescriptor[int(code)])
+		}
+		publishStatus(client, entry, "stopped", err.Error(), code)
 		return
 	}
-	publishStatus(client, entry, "stopped", nil)
+	publishStatus(client, entry, "stopped", nil, 1)
 }
 
-func publishStatus(client *mqtt.Client, entry *IntegrationEntry, status string, error interface{}) {
+func publishStatus(client *mqtt.Client, entry *IntegrationEntry, status string, error interface{}, errorCode int) {
 	jsonStatus := IntegrationStatus{
-		Name:   entry.Name,
-		Status: status,
-		Error: func() string {
+		Name:      entry.Name,
+		Status:    status,
+		ErrorCode: errorCode,
+		ErrorDescription: func() string {
 			if error == nil {
 				return ""
 			}
@@ -335,7 +362,7 @@ func publishStatus(client *mqtt.Client, entry *IntegrationEntry, status string, 
 	}
 	statusMap[entry.Id] = &jsonStatus
 	jsonData, _ := json.Marshal(jsonStatus)
-	(*client).Publish("/orchestrator/status", 0, false, jsonData)
+	(*client).Publish(fmt.Sprintf("/orchestrator/status/%s", entry.Id), 0, false, jsonData)
 
 }
 
@@ -349,6 +376,11 @@ func mqttServer() {
 	// Create a TCP listener on a standard port.
 	tcp := listeners.NewTCP(listeners.Config{ID: "t1", Address: ":1883"})
 	err := server.AddListener(tcp)
+	ws := listeners.NewWebsocket(listeners.Config{
+		ID:      "ws1",
+		Address: ":1882",
+	})
+	err = server.AddListener(ws)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -22,7 +22,7 @@ const client = mqtt.connect("mqtt://127.0.0.1:1883", {
   reconnectPeriod: 1000,
 });
 
-ws.on("error", console.error);
+ws.on("error", (e) => console.error("Websocket error:", e));
 
 ws.on("open", function open() {
   console.log("WebSocket connection established!");
@@ -318,6 +318,6 @@ async function fetchPresets() {
     return presetList;
   } catch (error) {
     console.error("Failed to fetch presets:", error);
-    return null;
+    process.exit(44);
   }
 }
