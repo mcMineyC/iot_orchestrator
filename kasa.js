@@ -71,7 +71,7 @@ client.on("connect", () => {
       });
     } else if (schema.type == "command") {
       // Subscribe to all command paths
- client.subscribe(`/${config.id}${schema.path}`, async (err) => {
+      client.subscribe(`/${config.id}${schema.path}`, async (err) => {
         if (!err && err != null) {
           console.log(
             "Failed to subscribe to",
@@ -83,6 +83,7 @@ client.on("connect", () => {
       });
     }
   });
+  sendFullState();
 });
 
 client.on("message", async (topic, message) => {
@@ -135,6 +136,27 @@ client.on("message", async (topic, message) => {
   }
 });
 client.publish(`/orchestrator/integration/${clientId}/online`, "true");
+
+function sendFullState(){
+  definition.schema.forEach(async (schema) => {
+    // The schema defines all paths, follow the schema
+    var path = schema.path;
+    if (schema.type == "data" && schema.fetchable) {
+      var data= await getData(path.split("/").slice(1).join("/"));
+      if (data == null) {
+        // obviously don't handle getting data we don't know about
+        console.log("Data path not found: ", path.split("/").slice(1).join("/"));
+        return;
+      }
+      // MQTT doesn't like objects so stringify anything that comes by
+      client.publish(`/${clientId}/${path.split("/")[1]}`, JSON.stringify(data));
+    }
+  })
+}
+// process.on("exit", () => {
+//   console.log("Before death, i have a few last wishes")
+//   process.exit(2)
+// })
 //
 //
 //

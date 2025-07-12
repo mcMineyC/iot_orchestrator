@@ -153,6 +153,10 @@ client.on("message", async (topic, message) => {
   }
 });
 client.publish(`/orchestrator/integration/${clientId}/online`, "true");
+process.on("SIGTERM", () => {
+  client.publish(`/orchestrator/integration/${clientId}/online`, "false")
+  process.exit(2)
+})
 //
 //
 //

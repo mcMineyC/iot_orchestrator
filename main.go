@@ -74,6 +74,7 @@ var exitStatusDescriptor = map[int]string{
 	113: "device misconfigured",
 	2:   "manual intervention",
 	1:   "unknown",
+	0:   "",
 }
 
 var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
@@ -310,7 +311,12 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 			fmt.Printf("[%s][err]: %s\n", entry.Id, scanner.Text())
 		}
 	}()
-	publishStatus(client, entry, "running", nil, 0)
+	publishStatus(client, entry, "starting", nil, 0)
+	(*client).Subscribe(fmt.Sprintf("/orchestrator/integration/%s/online", entry.Id), 0, func(client mqtt.Client, message mqtt.Message) {
+		if string(message.Payload()) == "true" {
+			publishStatus(&client, entry, "running", nil, 0)
+		}
+	})
 	// Subscribe to stop command and keep track of the subscription
 	stopTopic := fmt.Sprintf("/orchestrator/integration/%s/stop", entry.Id)
 	token := (*client).Subscribe(stopTopic, 0, func(client mqtt.Client, message mqtt.Message) {
@@ -341,6 +347,8 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 			codei64, _ := strconv.ParseInt(match[1], 10, 8)
 			code = int(codei64)
 			log.Printf("Integration stopped because %s", exitStatusDescriptor[int(code)])
+		} else if err.Error() == "signal: killed" {
+			code = 2
 		}
 		publishStatus(client, entry, "stopped", err.Error(), code)
 		return
@@ -354,10 +362,11 @@ func publishStatus(client *mqtt.Client, entry *IntegrationEntry, status string, 
 		Status:    status,
 		ErrorCode: errorCode,
 		ErrorDescription: func() string {
-			if error == nil {
-				return ""
+			description, exists := exitStatusDescriptor[errorCode]
+			if !exists {
+				return exitStatusDescriptor[1]
 			}
-			return fmt.Sprintf("%s", error)
+			return description
 		}(),
 	}
 	statusMap[entry.Id] = &jsonStatus

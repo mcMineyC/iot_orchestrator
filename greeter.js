@@ -71,6 +71,11 @@ client.on("message", async (topic, message) => {
     console.log("Unknown command:", path);
   }
 });
+client.publish(`/orchestrator/integration/${clientId}/online`, "true");
+process.on("SIGTERM", () => {
+  client.publish(`/orchestrator/integration/${clientId}/online`, "false")
+  process.exit(2)
+})
 //
 //
 //
