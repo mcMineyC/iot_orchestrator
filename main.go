@@ -208,7 +208,9 @@ func findIntegrationByName(name string, config *MainConfig) *IntegrationDefiniti
 
 func startIntegrations(config *MainConfig, client *mqtt.Client) {
 	log.Printf("We have %d integrations available", len(config.KnownIntegrations))
-	log.Printf("We need to start %d", len(config.EnabledIntegrations))
+	log.Printf("We need to start %d", len(filter(config.EnabledIntegrations, func(entry *IntegrationEntry) bool {
+		return config.KnownIntegrations[entry.IntegrationName].Manage
+	})))
 	for _, integration := range config.EnabledIntegrations {
 		definition := config.KnownIntegrations[integration.IntegrationName]
 		if definition == nil {
@@ -257,6 +259,9 @@ func fetchIntegrationData(definition *IntegrationDefinition, entry *IntegrationE
 }
 
 func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEntry, client *mqtt.Client) {
+	if definition.Manage == false {
+		return
+	}
 	statusMap[entry.Id] = &IntegrationStatus{
 		Name:             entry.Name,
 		Status:           "starting",
@@ -400,4 +405,17 @@ func mqttServer() {
 			log.Fatal(err)
 		}
 	}()
+}
+
+func filter[T any](data []T, f func(T) bool) []T {
+
+    fltd := make([]T, 0, len(data))
+
+    for _, e := range data {
+        if f(e) {
+            fltd = append(fltd, e)
+        }
+    }
+
+    return fltd
 }

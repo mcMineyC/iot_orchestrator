@@ -36,6 +36,11 @@
         "ip": "192.168.30.32",
         "maxBrightness": 200
       }
+    },
+    {
+      "name": "My Arduino Test",
+      "integrationName": "test-arduino",
+      "id": "arduino-test"
     }
   ],
   "knownIntegrations": {
@@ -74,6 +79,22 @@
           "path": "/stop",
           "type": "command",
           "fetchable": false
+        }
+      ]
+    },
+    "test-arduino": {
+      "name": "Arduino (via MQTT)",
+      "manage": false,
+      "schema": [
+        {
+          "path": "/powerState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/lightState",
+          "type": "data",
+          "fetchable": true
         }
       ]
     },
