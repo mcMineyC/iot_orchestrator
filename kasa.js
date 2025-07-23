@@ -48,7 +48,7 @@ try {
 }
 // Set up MQTT client
 const client = mqtt.connect("mqtt://127.0.0.1:1883", {
-  clientId: `kasa-${clientId}-${Date.now()}`, // unique id
+  clientId: clientId, // unique id
   clean: true, // idk this helps it work
   reconnectPeriod: 1000,
 });

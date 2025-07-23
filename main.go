@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,10 +29,11 @@ type MainState struct {
 }
 
 type MainConfig struct {
-	Port                int                               `json:"port"`
-	Host                string                            `json:"host"`
-	EnabledIntegrations []*IntegrationEntry               `json:"enabledIntegrations"`
-	KnownIntegrations   map[string]*IntegrationDefinition `json:"knownIntegrations"`
+	Port                             int                               `json:"port"`
+	Host                             string                            `json:"host"`
+	EnabledIntegrations              map[string]*IntegrationEntry      `json:"enabledIntegrations"`
+	KnownIntegrations                map[string]*IntegrationDefinition `json:"knownIntegrations"`
+	IntegrationStartupTimeoutSeconds int                               `json:"integrationStartupTimeoutSeconds"`
 }
 
 type IntegrationEntry struct {
@@ -97,20 +99,14 @@ func main() {
 	log.Println("Starting IoT Orchestrator...")
 
 	log.Println("Reading configuration file...")
-	content, err := os.ReadFile("config.json")
-	if err != nil {
-		log.Fatalf("Failed to read config.json: %v", err)
-	}
-	var config *MainConfig
-	err = json.Unmarshal([]byte(content), &config)
-	if err != nil {
-		log.Fatalf("Failed to parse config.json: %v", err)
-	}
-
+	config := loadConfig("config.json")
 	log.Printf("Configuration loaded successfully - Host: %s, Port: %d", config.Host, config.Port)
 	log.Println("IoT Orchestrator initialization complete")
+
 	log.Println("Starting MQTT server...")
-	go mqttServer()
+	disconnectChan := make(chan string)
+	go mqttServer(disconnectChan)
+
 	mqtt.DEBUG = log.New(io.Discard, "", 0)
 	mqtt.ERROR = log.New(os.Stdout, "", 0)
 	opts := mqtt.NewClientOptions().AddBroker("tcp://localhost:1883").SetClientID("orchestrator")
@@ -122,6 +118,14 @@ func main() {
 	if token := c.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
+	// Start reading from the disconnect channel
+	go func() {
+		for clientID := range disconnectChan {
+			if val, ok := statusMap[clientID]; ok && val.Status != "stopped" {
+				publishStatus(&c, config.EnabledIntegrations[clientID], "stopped", "disconnected from bus", 1)
+			}
+		}
+	}()
 
 	log.Println("Orchestrator connected to broker")
 
@@ -183,11 +187,9 @@ func main() {
 
 	c.Subscribe("/orchestrator/integration/start", 0, func(client mqtt.Client, msg mqtt.Message) {
 		integrationId := string(msg.Payload())
-		for _, entry := range config.EnabledIntegrations {
-			if entry.Id == integrationId {
-				log.Printf("Starting integration %s", integrationId)
-				go monitorIntegration(config.KnownIntegrations[entry.IntegrationName], entry, &c)
-			}
+		if entry, ok := config.EnabledIntegrations[integrationId]; ok {
+			log.Printf("Starting integration %s", integrationId)
+			go monitorIntegration(config.KnownIntegrations[entry.IntegrationName], entry, &c)
 		}
 	})
 
@@ -208,7 +210,7 @@ func findIntegrationByName(name string, config *MainConfig) *IntegrationDefiniti
 
 func startIntegrations(config *MainConfig, client *mqtt.Client) {
 	log.Printf("We have %d integrations available", len(config.KnownIntegrations))
-	log.Printf("We need to start %d", len(filter(config.EnabledIntegrations, func(entry *IntegrationEntry) bool {
+	log.Printf("We need to start %d", len(filterMap(config.EnabledIntegrations, func(entry *IntegrationEntry) bool {
 		return config.KnownIntegrations[entry.IntegrationName].Manage
 	})))
 	for _, integration := range config.EnabledIntegrations {
@@ -238,9 +240,26 @@ func startIntegrations(config *MainConfig, client *mqtt.Client) {
 				}
 			}
 		}
+		publishStatus(client, integration, "starting", nil, 0)
+
+		// Startup timeout logic
+		timeout := config.IntegrationStartupTimeoutSeconds
+		if timeout <= 0 {
+			timeout = 15 // default if not set
+		}
+		go func(integrationId string, integration *IntegrationEntry) {
+			time.Sleep(time.Duration(timeout) * time.Second)
+			status := statusMap[integrationId]
+			if status != nil && status.Status == "starting" {
+				publishStatus(client, integration, "stopped", "startup timeout", 44)
+				log.Printf("Integration %s timed out during startup", integrationId)
+			}
+		}(integration.Id, integration)
+
 		(*client).Subscribe(fmt.Sprintf("/orchestrator/integration/%s/online", integration.Id), 0, func(client mqtt.Client, message mqtt.Message) {
 			log.Printf("Integration %s is online", integration.Id)
 			// Fetch data for this integration
+			publishStatus(&client, integration, "running", nil, 0)
 			fetchIntegrationData(definition, integration, &client)
 		})
 		go monitorIntegration(definition, integration, client)
@@ -261,12 +280,6 @@ func fetchIntegrationData(definition *IntegrationDefinition, entry *IntegrationE
 func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEntry, client *mqtt.Client) {
 	if definition.Manage == false {
 		return
-	}
-	statusMap[entry.Id] = &IntegrationStatus{
-		Name:             entry.Name,
-		Status:           "starting",
-		ErrorDescription: "",
-		ErrorCode:        0,
 	}
 	log.Printf("Monitoring %s, defined by %s",
 		entry.Name,
@@ -316,7 +329,6 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 			fmt.Printf("[%s][err]: %s\n", entry.Id, scanner.Text())
 		}
 	}()
-	publishStatus(client, entry, "starting", nil, 0)
 	(*client).Subscribe(fmt.Sprintf("/orchestrator/integration/%s/online", entry.Id), 0, func(client mqtt.Client, message mqtt.Message) {
 		if string(message.Payload()) == "true" {
 			publishStatus(&client, entry, "running", nil, 0)
@@ -380,12 +392,43 @@ func publishStatus(client *mqtt.Client, entry *IntegrationEntry, status string, 
 
 }
 
-func mqttServer() {
+type MyHooks struct {
+	mqttserver.HookBase
+	DisconnectChan chan string
+}
+
+// OnDisconnect sends client ID to the channel
+func (h *MyHooks) OnDisconnect(cl *mqttserver.Client, err error, expire bool) {
+	log.Printf("Client disconnected: %s (expired: %v, err: %v)\n", cl.ID, expire, err)
+	h.DisconnectChan <- cl.ID
+}
+
+func (h *MyHooks) Provides(b byte) bool {
+	return bytes.Contains([]byte{
+		mqttserver.OnDisconnect,
+	}, []byte{b})
+}
+
+func (h *MyHooks) Init(any) error {
+	log.Printf("\t\t\t hooks initialised")
+	return nil
+}
+
+func mqttServer(disconnectChan chan string) {
 	// Create the new MQTT Server.
 	server := mqttserver.New(nil)
 
+	myHooks := &MyHooks{
+		DisconnectChan: disconnectChan,
+	}
+
 	// Allow all connections.
 	_ = server.AddHook(new(auth.AllowHook), nil)
+
+	// Add disconnect listener
+	if err := server.AddHook(myHooks, nil); err != nil {
+		log.Fatal(err)
+	}
 
 	// Create a TCP listener on a standard port.
 	tcp := listeners.NewTCP(listeners.Config{ID: "t1", Address: ":1883"})
@@ -409,13 +452,97 @@ func mqttServer() {
 
 func filter[T any](data []T, f func(T) bool) []T {
 
-    fltd := make([]T, 0, len(data))
+	fltd := make([]T, 0, len(data))
 
-    for _, e := range data {
-        if f(e) {
-            fltd = append(fltd, e)
-        }
-    }
+	for _, e := range data {
+		if f(e) {
+			fltd = append(fltd, e)
+		}
+	}
 
-    return fltd
+	return fltd
+}
+
+func filterMap[T any](data map[string]T, f func(T) bool) []T {
+	fltd := make([]T, 0, len(data))
+	for _, e := range data {
+		if f(e) {
+			fltd = append(fltd, e)
+		}
+	}
+	return fltd
+}
+
+// loadConfig reads config.json, transforms enabledIntegrations array to map if needed, and returns MainConfig
+func loadConfig(path string) *MainConfig {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatalf("Failed to read %s: %v", path, err)
+	}
+
+	var rawConfig map[string]any
+	err = json.Unmarshal(content, &rawConfig)
+	if err != nil {
+		log.Fatalf("Failed to parse %s: %v", path, err)
+	}
+
+	enabledRaw, ok := rawConfig["enabledIntegrations"]
+	if !ok {
+		log.Fatalf("enabledIntegrations missing from %s", path)
+	}
+	var enabledMap map[string]*IntegrationEntry
+	switch v := enabledRaw.(type) {
+	case []any:
+		enabledMap = make(map[string]*IntegrationEntry)
+		for _, item := range v {
+			entryBytes, err := json.Marshal(item)
+			if err != nil {
+				log.Fatalf("Failed to marshal enabledIntegration entry: %v", err)
+			}
+			var entry IntegrationEntry
+			if err := json.Unmarshal(entryBytes, &entry); err != nil {
+				log.Fatalf("Failed to unmarshal enabledIntegration entry: %v", err)
+			}
+			if entry.Id == "" {
+				log.Fatalf("enabledIntegration entry missing 'id' field: %+v", entry)
+			}
+			enabledMap[entry.Id] = &entry
+		}
+	case map[string]any:
+		enabledMap = make(map[string]*IntegrationEntry)
+		for id, item := range v {
+			entryBytes, err := json.Marshal(item)
+			if err != nil {
+				log.Fatalf("Failed to marshal enabledIntegration entry: %v", err)
+			}
+			var entry IntegrationEntry
+			if err := json.Unmarshal(entryBytes, &entry); err != nil {
+				log.Fatalf("Failed to unmarshal enabledIntegration entry: %v", err)
+			}
+			entry.Id = id // Ensure id is set
+			enabledMap[id] = &entry
+		}
+	default:
+		log.Fatalf("enabledIntegrations must be an array or object in %s", path)
+	}
+
+	// Unmarshal the rest of the config, ignoring enabledIntegrations
+	type MainConfigNoIntegrations struct {
+		Port              int                               `json:"port"`
+		Host              string                            `json:"host"`
+		KnownIntegrations map[string]*IntegrationDefinition `json:"knownIntegrations"`
+	}
+	var configNoIntegrations MainConfigNoIntegrations
+	err = json.Unmarshal(content, &configNoIntegrations)
+	if err != nil {
+		log.Fatalf("Failed to parse %s: %v", path, err)
+	}
+
+	config := &MainConfig{
+		Port:                configNoIntegrations.Port,
+		Host:                configNoIntegrations.Host,
+		KnownIntegrations:   configNoIntegrations.KnownIntegrations,
+		EnabledIntegrations: enabledMap,
+	}
+	return config
 }
