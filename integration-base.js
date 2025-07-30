@@ -64,6 +64,13 @@ class Integration {
           });
         }
       });
+
+      // Client has finished setting up and ready to be bombarded with messages
+      this.client.publish(`/orchestrator/integration/${this.clientId}/online`, "true");
+      process.on("SIGTERM", () => {
+        this.client.publish(`/orchestrator/integration/${this.clientId}/online`, "false")
+        process.exit(2)
+      })
     });
     this.client.on("message", async (topic, message) => {
       // message is Buffer
@@ -142,13 +149,6 @@ class Integration {
         this.client.publish(`/${this.clientId}/error`, `Unknown command "${topic}"`);
       }
     });
-
-    // Client has finished setting up
-    this.client.publish(`/orchestrator/integration/${this.clientId}/online`, "true");
-    process.on("SIGTERM", () => {
-      this.client.publish(`/orchestrator/integration/${this.clientId}/online`, "false")
-      process.exit(2)
-    })
   }
   connect(){
     this.client.connect()

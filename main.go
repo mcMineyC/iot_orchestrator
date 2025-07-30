@@ -84,6 +84,8 @@ var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	fmt.Printf("MSG: %s\n", msg.Payload())
 }
 
+var config *MainConfig = nil;
+
 func main() {
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -99,7 +101,7 @@ func main() {
 	log.Println("Starting IoT Orchestrator...")
 
 	log.Println("Reading configuration file...")
-	config := loadConfig("config.json")
+	config = loadConfig("config.json")
 	log.Printf("Configuration loaded successfully - Host: %s, Port: %d", config.Host, config.Port)
 	log.Println("IoT Orchestrator initialization complete")
 
@@ -189,7 +191,7 @@ func main() {
 		integrationId := string(msg.Payload())
 		if entry, ok := config.EnabledIntegrations[integrationId]; ok {
 			log.Printf("Starting integration %s", integrationId)
-			go monitorIntegration(config.KnownIntegrations[entry.IntegrationName], entry, &c)
+			go startIntegration(config.KnownIntegrations[entry.IntegrationName], entry, &c)
 		}
 	})
 
@@ -240,21 +242,6 @@ func startIntegrations(config *MainConfig, client *mqtt.Client) {
 				}
 			}
 		}
-		publishStatus(client, integration, "starting", nil, 0)
-
-		// Startup timeout logic
-		timeout := config.IntegrationStartupTimeoutSeconds
-		if timeout <= 0 {
-			timeout = 15 // default if not set
-		}
-		go func(integrationId string, integration *IntegrationEntry) {
-			time.Sleep(time.Duration(timeout) * time.Second)
-			status := statusMap[integrationId]
-			if status != nil && status.Status == "starting" {
-				publishStatus(client, integration, "stopped", "startup timeout", 44)
-				log.Printf("Integration %s timed out during startup", integrationId)
-			}
-		}(integration.Id, integration)
 
 		(*client).Subscribe(fmt.Sprintf("/orchestrator/integration/%s/online", integration.Id), 0, func(client mqtt.Client, message mqtt.Message) {
 			log.Printf("Integration %s is online", integration.Id)
@@ -262,7 +249,30 @@ func startIntegrations(config *MainConfig, client *mqtt.Client) {
 			publishStatus(&client, integration, "running", nil, 0)
 			fetchIntegrationData(definition, integration, &client)
 		})
-		go monitorIntegration(definition, integration, client)
+		go startIntegration(definition, integration, client)
+	}
+}
+
+func startIntegration(definition *IntegrationDefinition, entry *IntegrationEntry, client *mqtt.Client) {
+	  publishStatus(client, entry, "starting", nil, 0)
+
+		// Startup timeout logic
+	timeout := config.IntegrationStartupTimeoutSeconds
+	if timeout <= 0 {
+		timeout = 15 // default if not set
+	}
+	go func(integration *IntegrationEntry) {
+		time.Sleep(time.Duration(timeout) * time.Second)
+		status := statusMap[integration.Id]
+		if status != nil && status.Status == "starting" {
+			publishStatus(client, integration, "stopped", "startup timeout", 44)
+			log.Printf("Integration %s timed out during startup", integration.Id)
+		}
+	}(entry)
+
+	if definition.Manage == true {
+		log.Println(definition.Manage)
+		go monitorIntegration(definition, entry, client)
 	}
 }
 
@@ -278,9 +288,6 @@ func fetchIntegrationData(definition *IntegrationDefinition, entry *IntegrationE
 }
 
 func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEntry, client *mqtt.Client) {
-	if definition.Manage == false {
-		return
-	}
 	log.Printf("Monitoring %s, defined by %s",
 		entry.Name,
 		definition.Name)

@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import Integration from "./integration-base.js";
 var wled = new Integration("wled");
+wled.connect()
 const ws = new WebSocket(`ws://${wled.config.config.ip}/ws`)
 
 // Gets name of current file without extension
