@@ -80,6 +80,11 @@ export class WledApi extends EventEmitter {
     this.#_presets = presetList
     return presetList;
   }
+  async cachedPresets(){
+    if(this.#presets === null || this.#presets.length === 0)
+      await this.fetchPresets()
+    return this.#presets
+  }
 
   set #_power(on){
     if (on !== this.#power)
@@ -98,7 +103,10 @@ export class WledApi extends EventEmitter {
   }
   set #_preset(ps){
     if(ps !== this.#preset)
-      this.emit("preset", ps)
+      this.emit("preset", {
+        id: ps,
+        name: ps === -1 ? "None" : (this.#presets[ps] || {name: "Preset "+ps}).name
+      })
     this.#preset = ps
   }
 
@@ -146,7 +154,10 @@ export class WledApi extends EventEmitter {
     this.sendMessage({ps})
   }
   get preset(){
-    return this.#preset
+    return {
+      id: this.#preset,
+      name: this.#presets[this.#preset] || "Preset "+this.#preset
+    }
   }
 
   get segments() {
