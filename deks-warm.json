@@ -1,0 +1,378 @@
+{
+  "state": {
+    "on": true,
+    "bri": 115,
+    "transition": 7,
+    "ps": -1,
+    "pl": -1,
+    "ledmap": 0,
+    "nl": {
+      "on": false,
+      "dur": 60,
+      "mode": 1,
+      "tbri": 0,
+      "rem": -1
+    },
+    "udpn": {
+      "send": false,
+      "recv": true,
+      "sgrp": 1,
+      "rgrp": 1
+    },
+    "lor": 0,
+    "mainseg": 3,
+    "seg": [
+      {
+        "id": 0,
+        "start": 0,
+        "stop": 8,
+        "len": 8,
+        "grp": 1,
+        "spc": 0,
+        "of": 0,
+        "on": false,
+        "frz": false,
+        "bri": 186,
+        "cct": 127,
+        "set": 0,
+        "n": "Closet Lights (12v)",
+        "col": [
+          [
+            255,
+            187,
+            121
+          ],
+          [
+            0,
+            255,
+            247
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "fx": 0,
+        "sx": 128,
+        "ix": 128,
+        "pal": 0,
+        "c1": 128,
+        "c2": 128,
+        "c3": 16,
+        "sel": false,
+        "rev": false,
+        "mi": false,
+        "o1": false,
+        "o2": false,
+        "o3": false,
+        "si": 0,
+        "m12": 0
+      },
+      {
+        "id": 1,
+        "start": 8,
+        "stop": 16,
+        "len": 8,
+        "grp": 1,
+        "spc": 0,
+        "of": 0,
+        "on": true,
+        "frz": false,
+        "bri": 160,
+        "cct": 127,
+        "set": 0,
+        "n": "Controller 2 (12v)",
+        "col": [
+          [
+            255,
+            177,
+            101
+          ],
+          [
+            255,
+            0,
+            221
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "fx": 8,
+        "sx": 20,
+        "ix": 75,
+        "pal": 0,
+        "c1": 128,
+        "c2": 128,
+        "c3": 16,
+        "sel": false,
+        "rev": false,
+        "mi": false,
+        "o1": false,
+        "o2": false,
+        "o3": false,
+        "si": 0,
+        "m12": 0
+      },
+      {
+        "id": 2,
+        "start": 17,
+        "stop": 21,
+        "len": 4,
+        "grp": 1,
+        "spc": 0,
+        "of": 0,
+        "on": true,
+        "frz": false,
+        "bri": 255,
+        "cct": 127,
+        "set": 1,
+        "n": "Desk RGB (5v)",
+        "col": [
+          [
+            255,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "fx": 0,
+        "sx": 30,
+        "ix": 255,
+        "pal": 0,
+        "c1": 128,
+        "c2": 128,
+        "c3": 16,
+        "sel": false,
+        "rev": false,
+        "mi": false,
+        "o1": false,
+        "o2": false,
+        "o3": false,
+        "si": 0,
+        "m12": 0
+      },
+      {
+        "id": 3,
+        "start": 16,
+        "stop": 17,
+        "len": 1,
+        "grp": 1,
+        "spc": 0,
+        "of": 0,
+        "on": true,
+        "frz": false,
+        "bri": 95,
+        "cct": 255,
+        "set": 1,
+        "n": "Desk light (5v)",
+        "col": [
+          [
+            255,
+            133,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "fx": 0,
+        "sx": 128,
+        "ix": 128,
+        "pal": 0,
+        "c1": 128,
+        "c2": 128,
+        "c3": 16,
+        "sel": true,
+        "rev": false,
+        "mi": false,
+        "o1": false,
+        "o2": false,
+        "o3": false,
+        "si": 0,
+        "m12": 0
+      },
+      {
+        "id": 4,
+        "start": 21,
+        "stop": 24,
+        "len": 3,
+        "grp": 1,
+        "spc": 0,
+        "of": 0,
+        "on": false,
+        "frz": false,
+        "bri": 92,
+        "cct": 127,
+        "set": 1,
+        "n": "Shelf lights (12v)",
+        "col": [
+          [
+            0,
+            255,
+            200
+          ],
+          [
+            8,
+            255,
+            0
+          ],
+          [
+            0,
+            0,
+            255
+          ]
+        ],
+        "fx": 0,
+        "sx": 128,
+        "ix": 128,
+        "pal": 11,
+        "c1": 128,
+        "c2": 128,
+        "c3": 16,
+        "sel": false,
+        "rev": false,
+        "mi": false,
+        "o1": false,
+        "o2": false,
+        "o3": false,
+        "si": 0,
+        "m12": 0
+      },
+      {
+        "id": 5,
+        "start": 24,
+        "stop": 25,
+        "len": 1,
+        "grp": 1,
+        "spc": 0,
+        "of": 0,
+        "on": true,
+        "frz": false,
+        "bri": 20,
+        "cct": 127,
+        "set": 2,
+        "n": "Gamer Vibezzz",
+        "col": [
+          [
+            0,
+            132,
+            255
+          ],
+          [
+            255,
+            0,
+            13
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "fx": 9,
+        "sx": 35,
+        "ix": 128,
+        "pal": 0,
+        "c1": 128,
+        "c2": 128,
+        "c3": 16,
+        "sel": false,
+        "rev": false,
+        "mi": false,
+        "o1": false,
+        "o2": false,
+        "o3": false,
+        "si": 0,
+        "m12": 0
+      }
+    ]
+  },
+  "info": {
+    "ver": "0.16.0-dev",
+    "vid": 2412040,
+    "cn": "Kōsen",
+    "release": "ESP8266",
+    "leds": {
+      "count": 25,
+      "pwr": 80,
+      "fps": 35,
+      "maxpwr": 50090,
+      "maxseg": 16,
+      "bootps": 3,
+      "seglc": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "lc": 1,
+      "rgbw": false,
+      "wv": 0,
+      "cct": 0
+    },
+    "str": false,
+    "name": "Broom Closet Ending",
+    "udpport": 21324,
+    "simplifiedui": false,
+    "live": false,
+    "liveseg": -1,
+    "lm": "",
+    "lip": "",
+    "ws": 2,
+    "fxcount": 187,
+    "palcount": 72,
+    "cpalcount": 0,
+    "maps": [
+      {
+        "id": 0
+      }
+    ],
+    "wifi": {
+      "bssid": "F6:9F:C2:34:55:36",
+      "rssi": -67,
+      "signal": 66,
+      "channel": 1,
+      "ap": false
+    },
+    "fs": {
+      "u": 81,
+      "t": 1024,
+      "pmt": 1754107232
+    },
+    "ndc": 0,
+    "arch": "esp8266",
+    "core": "3.1.2",
+    "clock": 80,
+    "flash": 4,
+    "lwip": 2,
+    "freeheap": 19328,
+    "uptime": 787332,
+    "time": "2025-8-2, 12:37:52",
+    "opt": 79,
+    "brand": "WLED",
+    "product": "FOSS",
+    "mac": "bcff4d197139",
+    "ip": "192.168.30.30"
+  }
+}

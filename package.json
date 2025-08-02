@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "color-temperature": "^0.2.7",
     "mqtt": "^5.13.0",
     "tplink-smarthome-api": "^5.0.0",
     "ws": "^8.18.2"
