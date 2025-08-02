@@ -3,6 +3,14 @@ import {WledApi} from "./wled-api.js"
 const TEMP_MIN = 2000;
 const TEMP_MAX = 7000;
 
+// Segment list
+// 0: Closet Lights
+// 1: Accent light
+// 2: Desk RGB
+// 3: Desk light
+// 4: Shelf lights
+// 5: Gamer Vibezzz (Addressable neon strip)
+
 const wled = new WledApi("192.168.30.30")
 await wled.init()
 wled.on("state", (state) => {

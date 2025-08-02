@@ -1,6 +1,6 @@
 import WebSocket from "ws";
 import { EventEmitter } from "node:events";
-import fs from "fs"
+
 import process from 'process';
 process.stdin.resume(); // Keeps process alive
 
@@ -11,8 +11,9 @@ export const compare = (a, b) =>
 export const isDiff = (a, b) => !compare(a, b);
 export const mapNumRange = (num, inMin, inMax, outMin, outMax) =>
   ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
-
 export const withinTolerance = (val, tar, tol) => val <= tar+tol && val >= tar-tol
+
+export const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
 
 export class WledApi extends EventEmitter {
@@ -282,7 +283,8 @@ export class WledSegment extends EventEmitter {
   }
 }
 
-const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+// Courtesy of Iro.js
+// Url: https://github.com/irojs/iro-core/blob/typescript/src/color.ts#L299
 function kelvinToRgb(kelvin) {
     const temp = kelvin / 100;
     let r, g, b;
