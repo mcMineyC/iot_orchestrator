@@ -1,6 +1,3 @@
-import process from 'process';
-process.stdin.resume(); // Keeps process alive
-
 import {WledApi} from "./wled-api.js"
 
 const TEMP_MIN = 2000;

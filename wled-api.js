@@ -1,6 +1,8 @@
 import WebSocket from "ws";
 import { EventEmitter } from "node:events";
 import fs from "fs"
+import process from 'process';
+process.stdin.resume(); // Keeps process alive
 
 export const compare = (a, b) =>
   typeof a === "object" || typeof b === "object"
@@ -9,6 +11,9 @@ export const compare = (a, b) =>
 export const isDiff = (a, b) => !compare(a, b);
 export const mapNumRange = (num, inMin, inMax, outMin, outMax) =>
   ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+
+export const withinTolerance = (val, tar, tol) => val <= tar+tol && val >= tar-tol
+
 
 export class WledApi extends EventEmitter {
   #power = null;
@@ -35,14 +40,14 @@ export class WledApi extends EventEmitter {
       console.log("[[WLED]]: Connected to " + host);
     });
     this.ws.on("message", (data) => {
-      console.log("New message!!!");
+      // console.log("New message!!!");
       try {
         var msg = JSON.parse(data);
-        fs.writeFileSync("./wled-message.json", JSON.stringify(msg,null,2))
-        if (typeof msg.success !== "undefined" && msg.success === true)
-          console.log("Command completed successfully");
-        else if (typeof msg.success !== "undefined" && msg.success === false)
-          console.log("Command failed");
+        // fs.writeFileSync("./wled-message.json", JSON.stringify(msg,null,2))
+        // if (typeof msg.success !== "undefined" && msg.success === true)
+        //   console.log("Command completed successfully");
+        // else if (typeof msg.success !== "undefined" && msg.success === false)
+        //   console.log("Command failed");
 
         if (typeof msg.state !== "undefined") {
           this.state = msg.state;
@@ -56,7 +61,7 @@ export class WledApi extends EventEmitter {
     return Promise.all([this.inited.segments.promise, this.inited.presets.promise])
   }
   async fetchPresets(host) {
-    console.log("Fetching presets from instance");
+    // console.log("Fetching presets from instance");
     const response = await fetch(`http://${host}/presets.json`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -70,7 +75,7 @@ export class WledApi extends EventEmitter {
         name: preset.n || `Preset ${index + 1}`,
       });
     });
-    console.log("Fetched presets:", presetList.length);
+    // console.log("Fetched presets:", presetList.length);
     this.#_presets = presetList
     return presetList;
   }
@@ -190,12 +195,12 @@ export class WledSegment extends EventEmitter {
 
     // var newTemp = colorConv.rgb2colorTemperature(state.col[0])
     var col = state.col[0]
-    var newTemp = Math.round(rgbToKelvin({r: col[0], g: col[1], b: col[2]}))
-    if (newTemp !== this.#temperature)
+    var newTemp = Math.ceil(rgbToKelvin({r: col[0], g: col[1], b: col[2]}))
+    if (!withinTolerance(newTemp, this.#temperature, 2))
       this.emit("temperature", newTemp)
     this.#temperature = newTemp;
 
-    if(state.col[0] != this.#color)
+    if(isDiff(state.col[0], this.#color))
       this.emit("color", state.col[0])
     this.#color = state.col[0]
 
