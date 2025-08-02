@@ -31,11 +31,12 @@
     },
     {
       "name": "Broom Closet Ending",
-      "integrationName": "wled",
+      "integrationName": "wled-segment",
       "id": "broom-closet-ending",
       "config": {
         "ip": "192.168.30.30",
-        "maxBrightness": 200
+        "maxBrightness": 200,
+        "segment": 2
       }
     },
     {
@@ -157,6 +158,54 @@
       "manage": true,
       "command": "node wled.js",
       "args": ["ip", "maxbrightness"],
+      "schema": [
+        {
+          "path": "/powerState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/lightState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/presets",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/power/toggle",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/power/on",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/power/off",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/brightness",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/preset",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
+    "wled-segment": {
+      "name": "WLED Segment",
+      "manage": false,
+      "command": "node wled-segment.js",
+      "args": ["ip", "maxbrightness", "segment"],
       "schema": [
         {
           "path": "/powerState",

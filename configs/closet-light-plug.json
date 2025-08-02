@@ -1,0 +1,9 @@
+{
+  "name": "Closet Lights",
+  "integrationName": "kasa",
+  "id": "closet-light-plug",
+  "config": {
+    "ip": "192.168.30.37",
+    "type": "plug"
+  }
+}

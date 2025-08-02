@@ -23,13 +23,11 @@ try {
     case "EHOSTUNREACH":
       console.error("Error: Device not online");
       process.exit(44);
-      break;
     case "ECONNREFUSED":
     case "ECONNRESET":
     case "ECONNABORTED":
       console.error("Error: Device is not a kasa");
       process.exit(113);
-      break;
     default:
       if (code.includes("TCP Timeout")) {
         console.log("Error: Device not online");
@@ -38,22 +36,8 @@ try {
         console.error("Unknown error:", code);
         process.exit(1);
       }
-      break;
   }
 }
-integration.connect();
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//////////////////////////
-///  data fetch logic  ///
-/////////////////////////
 
 device.on("lightstate-update", (state) => {
   console.log("Light state updated:", state);
@@ -82,23 +66,12 @@ integration.fetchers = {
   }
 }
 
-//////////////////////////
-/// command definition ///
-/////////////////////////
-
 integration.commandHandlers = {
   // Each command handler should be defined here
   // It takes the topic and message as parameters
   // Every handler should return an object of the form
   // { path: string, data: any }
-  /*
-  "/greet": (topic, message) => {
-    console.log("Hello!");
-    return {
-      path: `/greeting`,
-      data: `Hello, ${message.name}!`,
-    };
-    },*/
+
   "/power/on": async (topic, message) => {
     console.log("Powering on!");
     if (await device.setPowerState(true))
@@ -208,3 +181,5 @@ integration.commandHandlers = {
       };
   },
 };
+
+integration.connect();

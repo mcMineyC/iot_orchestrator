@@ -2,7 +2,7 @@ import WebSocket from "ws";
 import Integration from "./integration-base.js";
 var wled = new Integration("wled");
 wled.connect()
-const ws = new WebSocket(`ws://${wled.config.config.ip}/ws`)
+const ws = new WebSocket(`ws://${wled.params.ip}/ws`)
 
 // Gets name of current file without extension
 
@@ -24,7 +24,7 @@ var state = {
 ws.on("message", function message(data) {
   try {
     var msg = JSON.parse(data);
-    // console.log(msg);
+    console.log(msg);
     if (typeof msg.success !== "undefined" && msg.success)
       console.log("Command completed successfully");
     else if (typeof msg.success !== "undefined" && !msg.success)
@@ -67,7 +67,7 @@ ws.on("message", function message(data) {
 //////////////////////////
 ///  data fetch logic  ///
 /////////////////////////
-wled.routes.getdata = {
+wled.fetchers = {
   "/powerState": () => state.on ? "on" : "off",
   "/lightState": async () => {
     var tempState = {
@@ -107,7 +107,7 @@ wled.routes.getdata = {
 /// command definition ///
 /////////////////////////
 
-wled.routes.commandHandlers = {
+wled.commandHandlers = {
   // Each command handler should be defined here
   // It takes the topic and message as parameters
   // Every handler should return an object of the form

@@ -135,7 +135,7 @@ func main() {
 	// 	log.Println("Received status message:", string(msg.Payload()))
 	// })
 
-	c.Subscribe("/orchestrator/getdata/fullStatus", 0, func(client mqtt.Client, msg mqtt.Message) {
+	c.Subscribe("/orchestrator/getdata/status", 0, func(client mqtt.Client, msg mqtt.Message) {
 		// Convert statusMap to JSON
 		jsonData, err := json.Marshal(statusMap)
 		if err != nil {
@@ -144,7 +144,7 @@ func main() {
 			return
 		}
 		// Publish the JSON response
-		client.Publish("/orchestrator/fullStatus", 0, false, jsonData)
+		client.Publish("/orchestrator/status", 0, false, jsonData)
 	})
 
 	c.Subscribe("/orchestrator/getdata/state", 0, func(client mqtt.Client, msg mqtt.Message) {
@@ -166,13 +166,31 @@ func main() {
 		// 		}
 		// 	}
 		// }
-		jsonData, err := json.Marshal(mainState)
+		jsonData, err := json.Marshal(mainState.IntegrationStates)
 		if err != nil {
 			log.Printf("Failed to marshal mainState: %v", err)
 			client.Publish("/orchestrator/error", 0, false, []byte("Failed to get state"))
 			return
 		}
 		client.Publish("/orchestrator/state", 0, false, jsonData)
+	})
+	c.Subscribe("/orchestrator/getdata/fullState", 0, func(client mqtt.Client, msg mqtt.Message) {
+		fmt.Printf("Request for fullState (sends /state and /status)")
+		integrationData, err := json.Marshal(mainState.IntegrationStates)
+		if err != nil {
+			log.Printf("Failed to marshal mainState: %v", err)
+			client.Publish("/orchestrator/error", 0, false, []byte("Failed to get state"))
+			return
+		}
+		statusData, errr := json.Marshal(statusMap)
+		if errr != nil {
+			log.Printf("Failed to marshal statusMap: %v", errr)
+			client.Publish("/orchestrator/error", 0, false, []byte("Failed to get status"))
+			return
+		}
+		// Publish the JSON response
+		client.Publish("/orchestrator/status", 0, false, statusData)
+		client.Publish("/orchestrator/state", 0, false, integrationData)
 	})
 
 	// c.Subscribe("/orchestrator/interation/start", 0, func(client mqtt.Client, msg mqtt.Message) {

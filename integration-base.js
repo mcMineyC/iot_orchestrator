@@ -4,6 +4,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 const __filename = fileURLToPath(import.meta.url);
+const __dirname = import.meta.dirname;
 const fileName = path.basename(__filename, path.extname(__filename));
 
 
@@ -19,6 +20,7 @@ class Integration {
       getdata: {},
       commandHandlers: {},
     };
+    fs.writeFileSync(path.join(__dirname, "configs", this.config.id+".json"), JSON.stringify(this.config,null,2))
 
     // Set up MQTT client
     this.clientId = this.config.id;
@@ -117,7 +119,7 @@ class Integration {
       if (path.split("/")[0] == "getdata") {
         // eg /$id/getdata/<data_path>
         console.log("Received request for data from ", path.split("/").slice(1));
-        var data = await this.getData(path.split("/").slice(1).join("/"));
+        var data = await this.getData("/" + path.split("/").slice(1).join("/"));
         if (data == null) {
           // obviously don't handle getting data we don't know about
           console.log("Data path not found: ", path.split("/").slice(1).join("/"));
@@ -152,6 +154,11 @@ class Integration {
   }
   connect(){
     this.client.connect()
+    Object.keys(this.routes.getdata).forEach(async (p) => {
+      var data = await this.getData(p)
+      if(data !== null)
+        this.publishData(p, data)
+    })
   }
   get commandHandlers() { return this.routes.commandHandlers }
   set commandHandlers(handlers) { this.routes.commandHandlers = handlers }
@@ -161,7 +168,6 @@ class Integration {
 
 
   async getData(path){
-    path = "/" + path
     console.log("getData called with path:", path)
     if(this.routes.getdata[path] !== undefined){
       return await this.routes.getdata[path]();
