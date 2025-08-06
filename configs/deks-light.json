@@ -1,0 +1,10 @@
+{
+  "name": "Deks Light",
+  "integrationName": "wled-segment",
+  "id": "deks-light",
+  "config": {
+    "host": "192.168.30.30",
+    "maxBrightness": 142,
+    "segment": 3
+  }
+}

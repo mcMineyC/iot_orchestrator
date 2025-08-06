@@ -1,10 +1,9 @@
 {
   "name": "Broom Closet Ending",
-  "integrationName": "wled-segment",
+  "integrationName": "wled",
   "id": "broom-closet-ending",
   "config": {
     "host": "192.168.30.30",
-    "maxBrightness": 200,
-    "segment": 0
+    "maxBrightness": 200
   }
 }

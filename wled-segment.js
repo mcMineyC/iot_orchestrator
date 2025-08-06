@@ -66,12 +66,11 @@ integration.commandHandlers = {
     };
   },
   "/power/toggle": (topic, message) => {
-    console.log("Toggling power!");
-    pow = !seg.power
+    var pow = !seg.power
     seg.power = pow
     return {
       path: `/powerState`,
-      data: pow ? "off" : "on",
+      data: seg.power ? "off" : "on",
     };
   },
   "/light/brightness": (topic, message) => {

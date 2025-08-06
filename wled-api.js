@@ -100,12 +100,16 @@ export class WledApi extends EventEmitter {
     if(isDiff(psl, this.#presets))
       this.emit("presets", psl)
     this.#presets = psl
+    console.log("Updated preset list")
+  }
+  get presets(){
+    return this.#presets
   }
   set #_preset(ps){
     if(ps !== this.#preset)
       this.emit("preset", {
         id: ps,
-        name: ps === -1 ? "None" : (this.#presets[ps] || {name: "Preset "+ps}).name
+        name: ps === -1 ? "None" : (this.#presets !== null && this.#presets.length >= ps ? this.#presets[ps] : {name: "Preset "+ps}).name
       })
     this.#preset = ps
   }
@@ -239,6 +243,7 @@ export class WledSegment extends EventEmitter {
   }
 
   set power(on) {
+    console.log("Wled-api set power")
     if (compare(on, this.#power)) return;
     this.sendMessage({ on });
     this.emit("power", on);

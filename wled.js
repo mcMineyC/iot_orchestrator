@@ -1,120 +1,44 @@
-import WebSocket from "ws";
+import {WledApi} from "./wled-api.js"
 import Integration from "./integration-base.js";
-var wled = new Integration("wled");
-wled.connect()
-const ws = new WebSocket(`ws://${wled.config.config.ip}/ws`)
+console.log("Starting up...")
+var integration = new Integration("wled");
+integration.connect() // Connect integration to the MQTT bus
+console.log("[[WLED]] Connecting to", integration.params.host)
+const wled = new WledApi(integration.params.host);
+await wled.init() // Fetches presets and wledments
+console.log("Connected to bus and WLED instance")
 
-// Gets name of current file without extension
-
-ws.on("error", (e) => console.error("Websocket error:", e));
-
-ws.on("open", function open() {
-  console.log("WebSocket connection established!");
-});
-
-
-var presets = await fetchPresets(); // Fetch presets on startup
-
-var state = {
-  on: false,
-  bri: 0,
-  ps: -1, // preset index, -1 means no preset
-};
-
-ws.on("message", function message(data) {
-  try {
-    var msg = JSON.parse(data);
-    // console.log(msg);
-    if (typeof msg.success !== "undefined" && msg.success)
-      console.log("Command completed successfully");
-    else if (typeof msg.success !== "undefined" && !msg.success)
-      console.log("Command failed");
-
-    if (typeof msg.state !== "undefined") {
-      state = msg.state;
-      wled.publishData("/powerState", state.on ? "on" : "off")
-      wled.publishData(
-        `/lightState`,
-        {
-          brightness: state.bri,
-          preset: state.ps,
-          presetName:
-            state.ps > 0 && state.ps < presets.length
-              ? presets[state.ps].name
-              : "",
-        }
-      );
-    }
-  } catch (e) {
-    console.error("Failed to parse state:", e);
-  }
-  console.log(
-    "Current state is %s, preset %s",
-    state.on ? "ON" : "OFF",
-    state.ps,
-  );
-});
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
 //////////////////////////
 ///  data fetch logic  ///
 /////////////////////////
-wled.routes.getdata = {
-  "/powerState": () => state.on ? "on" : "off",
+integration.fetchers = {
+  "/powerState": () => {console.log("Sending powerState"); return wled.power ? "on" : "off"},
   "/lightState": async () => {
-    var tempState = {
-      brightness: state.bri,
-      preset: state.ps,
-      presetName: "",
-    };
-    if(presets == undefined) {
-      console.error("Presets not loaded yet, fetching...");
-      presets = await fetchPresets();
-    }
+    console.log("Sending lightState")
+    var tempState = getLightState();
     console.log("We have %d presets", presets.length);
-    if (tempState.preset > 0 && tempState.preset < presets.length) {
-      tempState.presetName = presets[tempState.preset].name;
-    }else{
-      console.warn("Preset index out of bounds, using empty name");
-    }
+    // if (tempState.preset > 0 && tempState.preset < presets.length) {
+    //   tempState.presetName = presets[tempState.preset].name;
+    // }else{
+    //   console.warn("Preset index out of bounds, using empty name");
+    // }
     return tempState;
   },
-  "/presets": async () => await fetchPresets(),
+  "/presets": async () => {console.log("Sending presets"); return await wled.cachedPresets()},
 }
-// async function getData(path) {
-//   // All under the /$clientID/getdata topic
-//   console.log("getData called with path:", "/" + path);
-//   switch ("/" + path) {
-//     case "/powerState":
-//       return state.on ? "on" : "off";
-//     case "/lightState":
-//     case "/presets":
-//       return await fetchPresets();
-//     default:
-//       return null; // Return null if nothing needs to be returned
-//   }
-// }
 
 //////////////////////////
 /// command definition ///
 /////////////////////////
 
-wled.routes.commandHandlers = {
+integration.commandHandlers = {
   // Each command handler should be defined here
   // It takes the topic and message as parameters
   // Every handler should return an object of the form
   // { path: string, data: any }
   "/power/on": (topic, message) => {
     console.log("Powering on!");
-    ws.send(JSON.stringify({ on: true }));
+    wled.power = true
     return {
       path: `/powerState`,
       data: "on",
@@ -122,7 +46,7 @@ wled.routes.commandHandlers = {
   },
   "/power/off": (topic, message) => {
     console.log("Powering off!");
-    ws.send(JSON.stringify({ on: false }));
+    wled.power = false
     return {
       path: `/powerState`,
       data: "off",
@@ -130,31 +54,28 @@ wled.routes.commandHandlers = {
   },
   "/power/toggle": (topic, message) => {
     console.log("Toggling power!");
-    ws.send(JSON.stringify({ on: !state.on }));
+    pow = !wled.power
+    wled.power = pow
     return {
       path: `/powerState`,
-      data: state.on ? "off" : "on",
+      data: pow ? "off" : "on",
     };
   },
   "/light/brightness": (topic, message) => {
     console.log("Setting brightness!");
     if (typeof message == "number" && message >= 0 && message <= 255) {
-      if (wled.config.config.maxBrightness) {
-        message = Math.round((message / 255) * wled.config.config.maxBrightness);
+      if (integration.params.maxBrightness) {
+        message = Math.round((message / 255) * integration.params.maxBrightness);
       }
-      ws.send(JSON.stringify({ bri: message }));
+      wled.brightness = message
       return {
         path: `/lightState`,
-        data: JSON.stringify({
-          brightness: message,
-          preset: state.ps,
-          presetName: presets[state.ps].name,
-        }),
+        data: getLightState(),
       };
     } else {
       return {
         path: `/error`,
-        data: "Invalid brightness value",
+        data: `Invalid brightness.  Expected number in range 0 to 255, got (${typeof message}) ${message}`,
       };
     }
   },
@@ -163,46 +84,26 @@ wled.routes.commandHandlers = {
     if (
       typeof message == "number" &&
       message >= 0 &&
-      message < presets.length
+      message < wled.presets.length
     ) {
-      ws.send(JSON.stringify({ ps: message }));
+      wled.preset = message
       return {
         path: `/lightState`,
-        data: JSON.stringify({
-          brightness: state.bri,
-          preset: message,
-          presetName: presets[message].name,
-        }),
+        data: getLightState(),
       };
     } else {
       return {
         path: `/error`,
-        data: "Invalid preset number",
+        data: `Invalid preset number. Expected (number) in range 0 to ${wled.presets.length}, got (${typeof message}) ${message}`,
       };
     }
   },
 };
 
-async function fetchPresets() {
-  try {
-    console.log("Fetching presets from instance");
-    const response = await fetch(`http://${wled.config.config.ip}/presets.json`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const presets = await response.json();
-    var presetList = [];
-    Object.values(presets).forEach((preset, index) => {
-      presetList.push({
-        brightness: preset.bri,
-        id: index,
-        name: preset.n || `Preset ${index + 1}`,
-      });
-    });
-    console.log("Fetched presets:", presetList.length);
-    return presetList;
-  } catch (error) {
-    console.error("Failed to fetch presets:", error);
-    process.exit(44);
+
+function getLightState(){
+  return {
+    brightness: wled.bri,
+    preset: wled.preset
   }
 }
