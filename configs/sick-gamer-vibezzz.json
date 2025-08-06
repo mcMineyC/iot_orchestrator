@@ -1,0 +1,10 @@
+{
+  "name": "Gamer Vibezzz",
+  "integrationName": "wled-segment",
+  "id": "sick-gamer-vibezzz",
+  "config": {
+    "host": "192.168.30.30",
+    "maxBrightness": 255,
+    "segment": 5
+  }
+}

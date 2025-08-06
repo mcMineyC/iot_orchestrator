@@ -1,10 +1,10 @@
 {
-  "name": "Closet RGB",
+  "name": "Shelf Lights",
   "integrationName": "wled-segment",
-  "id": "closet-rgb",
+  "id": "shelf-lights",
   "config": {
     "host": "192.168.30.30",
     "maxBrightness": 200,
-    "segment": 0
+    "segment": 4
   }
 }

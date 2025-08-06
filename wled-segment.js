@@ -2,7 +2,6 @@ import {WledApi} from "./wled-api.js"
 import Integration from "./integration-base.js";
 console.log("Starting up...")
 var integration = new Integration("wled");
-integration.connect() // Connect integration to the MQTT bus
 console.log("[[WLED]] Connecting to", integration.params.host)
 const wled = new WledApi(integration.params.host);
 await wled.init() // Fetches presets and segments
@@ -17,12 +16,8 @@ integration.fetchers = {
   "/powerState": () => {console.log("Sending powerState"); return wled.power ? "on" : "off"},
   "/lightState": async () => {
     console.log("Sending lightState")
-    var tempState = {
-      brightness: seg.brightness,
-      preset: wled.preset.id,
-      presetName: wled.preset.name,
-    };
-    console.log("We have %d presets", presets.length);
+    var tempState = getLightState();
+    console.log("We have %d presets", wled.presets.length);
     // if (tempState.preset > 0 && tempState.preset < presets.length) {
     //   tempState.presetName = presets[tempState.preset].name;
     // }else{
@@ -158,3 +153,5 @@ function getLightState(){
     color: seg.color,
   }
 }
+
+integration.connect() // Connect integration to the MQTT bus

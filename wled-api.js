@@ -1,4 +1,5 @@
 import WebSocket from "ws";
+import fs from "fs";
 import { EventEmitter } from "node:events";
 
 import process from 'process';
@@ -40,6 +41,9 @@ export class WledApi extends EventEmitter {
     this.ws.on("open", function open() {
       console.log("[[WLED]]: Connected to " + host);
     });
+    this.ws.on("close", function close() {
+      console.log("[[WLED]]: Disconnected from host")
+    })
     this.ws.on("message", (data) => {
       // console.log("New message!!!");
       try {
@@ -295,7 +299,9 @@ export class WledSegment extends EventEmitter {
   }
 
   sendMessage(state) {
-    this.ws.send(JSON.stringify({ seg: [{ ...state, id: this.#id }] }));
+    var msg = { seg: [{ ...state, id: this.#id }] }
+    fs.writeFileSync("./wled-message.json", JSON.stringify(msg, null, 2))
+    this.ws.send(JSON.stringify(msg));
   }
 }
 

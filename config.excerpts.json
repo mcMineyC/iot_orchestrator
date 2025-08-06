@@ -1,0 +1,40 @@
+    {
+      "name": "Closet RGB",
+      "integrationName": "wled-segment",
+      "id": "closet-rgb",
+      "config": {
+        "host": "192.168.30.30",
+        "maxBrightness": 200,
+        "segment": 0
+      }
+    },
+    {
+      "name": "Controller 2",
+      "integrationName": "wled-segment",
+      "id": "controller-dos-accent",
+      "config": {
+        "host": "192.168.30.30",
+        "maxBrightness": 200,
+        "segment": 1
+      }
+    },
+    {
+      "name": "Desk RGB",
+      "integrationName": "wled-segment",
+      "id": "deks-rgb",
+      "config": {
+        "host": "192.168.30.30",
+        "maxBrightness": 255,
+        "segment": 2
+      }
+    },
+    {
+      "name": "Gamer Vibezzz",
+      "integrationName": "wled-segment",
+      "id": "sick-gamer-vibezzz",
+      "config": {
+        "host": "192.168.30.30",
+        "maxBrightness": 255,
+        "segment": 5
+      }
+    },
