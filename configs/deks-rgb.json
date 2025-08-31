@@ -3,7 +3,6 @@
   "integrationName": "wled-segment",
   "id": "deks-rgb",
   "config": {
-    "host": "192.168.30.30",
     "maxBrightness": 255,
     "segment": 2
   }

@@ -3,7 +3,6 @@
   "integrationName": "wled-segment",
   "id": "controller-dos-accent",
   "config": {
-    "host": "192.168.30.30",
     "maxBrightness": 200,
     "segment": 1
   }

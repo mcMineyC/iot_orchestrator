@@ -58,15 +58,32 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 // 🧩 WebSocket logic
+var latestState = null;
 wss.on('connection', (ws) => {
   console.log('WebSocket client connected to /ws');
 
   // wled.sendMessage({v: true})
   ws.on('message', (msg) => {
     console.log('SERVER:', msg.toString());
-    wled.ws.send(msg.toString());
+    if(typeof msg.v !== "undefined" && msg.v === true && latestState !== null)
+      ws.send(JSON.stringify(latestState))
+    else
+      wled.ws.send(msg.toString());
   });
   wled.ws.on('message', (msg) => {
+    try {
+      var mmsg = JSON.parse(msg);
+      // fs.writeFileSync("./wled-message.json", JSON.stringify(msg,null,2))
+      // if (typeof msg.success !== "undefined" && msg.success === true)
+      //   console.log("Command completed successfully");
+      // else if (typeof msg.success !== "undefined" && msg.success === false)
+      //   console.log("Command failed");
+      if (typeof mmsg.state !== "undefined") {
+        latestState = mmsg.state
+      }
+    } catch (e) {
+      console.log("Failed to parse state:", e);
+    }
     console.log("WLED MSG:", msg.toString().substring(0,25));
     ws.send(msg.toString())
   })

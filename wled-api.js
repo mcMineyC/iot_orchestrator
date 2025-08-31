@@ -48,8 +48,8 @@ export class WledApi extends EventEmitter {
         this.ws = new websocket(`ws://${host}/ws`);
         this.ws.on("open", () => {
           console.log("[[WLED]]: Connected to " + host);
-          this.ws.send(JSON.stringify({v: true}))
           inited.resolve()
+          this.ws.send(JSON.stringify({v: true}))
         });
         this.ws.on("close", () => {
           console.log("[[WLED]]: Disconnected from host")
@@ -64,9 +64,10 @@ export class WledApi extends EventEmitter {
           }
         })
         this.ws.on("message", (data) => {
-          // console.log("New message!!!");
+          console.log("New message!!!");
           try {
             var msg = JSON.parse(data);
+            console.log(msg)
             // fs.writeFileSync("./wled-message.json", JSON.stringify(msg,null,2))
             // if (typeof msg.success !== "undefined" && msg.success === true)
             //   console.log("Command completed successfully");

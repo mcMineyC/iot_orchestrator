@@ -59,6 +59,42 @@
       }
     },
     {
+      "name": "Closet RGB",
+      "integrationName": "wled-segment",
+      "id": "closet-rgb",
+      "config": {
+        "maxBrightness": 200,
+        "segment": 0
+      }
+    },
+    {
+      "name": "Controller 2",
+      "integrationName": "wled-segment",
+      "id": "controller-dos-accent",
+      "config": {
+        "maxBrightness": 200,
+        "segment": 1
+      }
+    },
+    {
+      "name": "Desk RGB",
+      "integrationName": "wled-segment",
+      "id": "deks-rgb",
+      "config": {
+        "maxBrightness": 255,
+        "segment": 2
+      }
+    },
+    {
+      "name": "Gamer Vibezzz",
+      "integrationName": "wled-segment",
+      "id": "sick-gamer-vibezzz",
+      "config": {
+        "maxBrightness": 255,
+        "segment": 5
+      }
+    },
+    {
       "name": "My Arduino Test",
       "integrationName": "test-arduino",
       "id": "arduino-test"
