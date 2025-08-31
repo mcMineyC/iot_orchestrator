@@ -79,8 +79,8 @@ wss.on('connection', (ws) => {
             if(latestState !== null)
               ws.send(JSON.stringify(latestState)) // send state now
           }, 100)
+        return
       }
-      return
     }catch(e){}
     console.log("Sending message to wled:",umsg.toString())
     wled.ws.send(umsg.toString());
