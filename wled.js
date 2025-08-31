@@ -59,16 +59,31 @@ server.on('upgrade', (req, socket, head) => {
 
 // 🧩 WebSocket logic
 var latestState = null;
+var requestedState = false;
 wss.on('connection', (ws) => {
   console.log('WebSocket client connected to /ws');
 
-  // wled.sendMessage({v: true})
-  ws.on('message', (msg) => {
-    console.log('SERVER:', msg.toString());
-    if(typeof msg.v !== "undefined" && msg.v === true && latestState !== null)
-      ws.send(JSON.stringify(latestState))
-    else
-      wled.ws.send(msg.toString());
+  if(!requestedState){
+    wled.sendMessage({v: true})
+    requestedState = true
+  }
+  ws.on('message', (umsg) => {
+    console.log('SERVER:', umsg.toString());
+    try{
+      var msg = JSON.parse(umsg.toString())
+      if(typeof msg.v !== "undefined" && msg.v === true){ // handles caching so WLED instance doesn't crash/brown out
+        if(latestState !== null) // requested and filled
+          ws.send(JSON.stringify(latestState))
+        else if(requestedState == true) // requested but not filled yet
+          setTimeout(() => { // Poll again in 100ms to see if it's updated yet
+            if(latestState !== null)
+              ws.send(JSON.stringify(latestState)) // send state now
+          }, 100)
+      }
+      return
+    }catch(e){}
+    console.log("Sending message to wled:",umsg.toString())
+    wled.ws.send(umsg.toString());
   });
   wled.ws.on('message', (msg) => {
     try {
