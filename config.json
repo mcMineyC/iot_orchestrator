@@ -34,7 +34,7 @@
       "integrationName": "wled",
       "id": "broom-closet-ending",
       "config": {
-        "host": "192.168.30.30",
+        "host": "192.168.30.32",
         "maxBrightness": 200
       }
     },
@@ -43,7 +43,7 @@
       "integrationName": "wled-segment",
       "id": "deks-light",
       "config": {
-        "host": "192.168.30.30",
+        "host": "192.168.30.32",
         "maxBrightness": 142,
         "segment": 3
       }
@@ -53,7 +53,7 @@
       "integrationName": "wled-segment",
       "id": "shelf-lights",
       "config": {
-        "host": "192.168.30.30",
+        "host": "192.168.30.32",
         "maxBrightness": 200,
         "segment": 4
       }

@@ -153,6 +153,7 @@ class Integration {
     });
   }
   connect(){
+    console.log("[[IntegrationBase]] Connect method called")
     this.client.connect()
     Object.keys(this.routes.getdata).forEach(async (p) => {
       var data = await this.getData(p)

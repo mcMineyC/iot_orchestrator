@@ -1,4 +1,4 @@
-import WebSocket from "ws";
+import websocket from "ws";
 import fs from "fs";
 import { EventEmitter } from "node:events";
 
@@ -16,6 +16,11 @@ export const withinTolerance = (val, tar, tol) => val <= tar+tol && val >= tar-t
 
 export const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
+export const sleep = (ms) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 export class WledApi extends EventEmitter {
   #power = null;
@@ -30,42 +35,68 @@ export class WledApi extends EventEmitter {
     // Shenanaginry to make sure segments and presets are fetched
     this.inited = {
       presets: {},
-      segments: {}
+      segments: {},
+      websocket: {},
     }
-    var prom = new Promise((resolve, reject) => {this.inited.segments.resolve = resolve; this.inited.segments.reject = reject})
-    this.inited.segments.promise = prom // The promise needs to be set up, then resolved in another setter
+    this.inited.segments.promise = new Promise((resolve, reject) => {this.inited.segments.resolve = resolve; this.inited.segments.reject = reject})
+    this.inited.websocket.promise = new Promise((resolve, reject) => {this.inited.websocket.resolve = resolve; this.inited.websocket.reject = reject; console.log("\t\t\t\tSet up websocket promise")})
+    // this.inited.websocket.promise = prom // The promise needs to be set up, then resolved in another setter
     this.inited.presets.promise = this.fetchPresets(host);
 
     // Connect to WLED websocket
-    this.ws = new WebSocket(`ws://${host}/ws`);
-    this.ws.on("open", function open() {
-      console.log("[[WLED]]: Connected to " + host);
-    });
-    this.ws.on("close", function close() {
-      console.log("[[WLED]]: Disconnected from host")
-    })
-    this.ws.on("message", (data) => {
-      // console.log("New message!!!");
-      try {
-        var msg = JSON.parse(data);
-        // fs.writeFileSync("./wled-message.json", JSON.stringify(msg,null,2))
-        // if (typeof msg.success !== "undefined" && msg.success === true)
-        //   console.log("Command completed successfully");
-        // else if (typeof msg.success !== "undefined" && msg.success === false)
-        //   console.log("Command failed");
+    const setupWS = (func, inited, tries = 0) => {
+        this.ws = new websocket(`ws://${host}/ws`);
+        this.ws.on("open", () => {
+          console.log("[[WLED]]: Connected to " + host);
+          this.ws.send(JSON.stringify({v: true}))
+          inited.resolve()
+        });
+        this.ws.on("close", () => {
+          console.log("[[WLED]]: Disconnected from host")
+        })
+        this.ws.on('error', (e) => {
+          console.log("\t\t!!! websocket ERROR !!!")
+          if(tries < 5)
+            sleep(2000).then(() => func(func, inited, ++tries))
+          else{
+            inited.reject()
+            throw new Error("Actually failed to connect to WS")
+          }
+        })
+        this.ws.on("message", (data) => {
+          // console.log("New message!!!");
+          try {
+            var msg = JSON.parse(data);
+            // fs.writeFileSync("./wled-message.json", JSON.stringify(msg,null,2))
+            // if (typeof msg.success !== "undefined" && msg.success === true)
+            //   console.log("Command completed successfully");
+            // else if (typeof msg.success !== "undefined" && msg.success === false)
+            //   console.log("Command failed");
+    
+            if (typeof msg.state !== "undefined") {
+              this.state = msg.state;
+            }
+          } catch (e) {
+            console.log("Failed to parse state:", e);
+          }
+        });
+      console.log("SetupWS call complete")
+    }
+    setupWS(setupWS, this.inited.websocket);
+  }
+  async init(){
+    console.log("\t\t\tAwaiting promise :)")
 
-        if (typeof msg.state !== "undefined") {
-          this.state = msg.state;
-        }
-      } catch (e) {
-        console.log("Failed to parse state:", e);
-      }
-    });
+    await this.inited.websocket.promise;
+    console.log("Have websocket")
+    await this.inited.presets.promise;
+    console.log("Have presets")
+    await this.inited.segments.promise;
+    console.log("Have segments")
   }
-  init(){
-    return Promise.all([this.inited.segments.promise, this.inited.presets.promise])
-  }
-  async fetchPresets(host) {
+  async fetchPresets(host, tries=0) {
+    try{
+
     // console.log("Fetching presets from instance");
     const response = await fetch(`http://${host}/presets.json`);
     if (!response.ok) {
@@ -83,6 +114,14 @@ export class WledApi extends EventEmitter {
     // console.log("Fetched presets:", presetList.length);
     this.#_presets = presetList
     return presetList;
+    }catch(e){
+      if(tries == 5)
+        throw new Error("Failed to fetch presets")
+      else{
+        await sleep(2000)
+        return await this.fetchPresets(host, ++tries)
+      }
+    }
   }
   async cachedPresets(){
     if(this.#presets === null || this.#presets.length === 0)
@@ -119,13 +158,16 @@ export class WledApi extends EventEmitter {
   }
 
   #updateSegments(segs) {
+    console.log("Updating segments")
     segs.forEach((seg, index) => {
       if (this.#segments.length <= index) {
         this.#segments.push(new WledSegment(this.ws, seg));
+        console.log("\tSeg", index,"created")
       } else {
         this.#segments[index].state = seg;
       }
     });
+    console.log("\tDone segments")
     this.inited.segments.resolve()
   }
 
@@ -173,6 +215,7 @@ export class WledApi extends EventEmitter {
   }
 
   sendMessage(msg){
+    console.log("Main message", msg)
     this.ws.send(JSON.stringify(msg))
   }
 }
@@ -249,6 +292,7 @@ export class WledSegment extends EventEmitter {
   set power(on) {
     console.log("Wled-api set power")
     if (compare(on, this.#power)) return;
+    console.log("Changing power from", this.#power, "to", on)
     this.sendMessage({ on });
     this.emit("power", on);
   }
@@ -299,8 +343,9 @@ export class WledSegment extends EventEmitter {
   }
 
   sendMessage(state) {
+    console.log("Segment message", state)
     var msg = { seg: [{ ...state, id: this.#id }] }
-    fs.writeFileSync("./wled-message.json", JSON.stringify(msg, null, 2))
+    // fs.writeFileSync("./wled-message.json", JSON.stringify(msg, null, 2))
     this.ws.send(JSON.stringify(msg));
   }
 }

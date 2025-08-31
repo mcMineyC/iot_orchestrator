@@ -8,6 +8,84 @@ await wled.init() // Fetches presets and wledments
 console.log("Connected to bus and WLED instance")
 
 
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import httpProxy from 'http-proxy';
+import { parse } from 'url';
+
+// Create an HTTP server
+const WLED_TARGET = 'http://'+integration.params.host; // Replace with your WLED IP
+
+// 🔁 Create HTTP proxy server to forward requests
+const proxy = httpProxy.createProxyServer({
+  target: WLED_TARGET,
+  changeOrigin: true
+});
+
+// 🌐 Create WebSocket server (deferred attachment)
+const wss = new WebSocketServer({ noServer: true });
+
+// 🧠 Create HTTP server
+const server = http.createServer((req, res) => {
+  const { pathname } = parse(req.url);
+
+  if (pathname === '/ws') {
+    res.writeHead(400);
+    res.end('WebSocket only on this endpoint.');
+    return;
+  }
+
+  // Proxy all other HTTP requests to WLED
+  proxy.web(req, res, (err) => {
+    console.log("Url:",req.originalUrl)
+    console.error('Proxy error:', err.message);
+    res.writeHead(502);
+    res.end('Bad Gateway');
+  });
+});
+
+// ⚙️ Handle WebSocket upgrade requests
+server.on('upgrade', (req, socket, head) => {
+  const { pathname } = parse(req.url);
+
+  if (pathname === '/ws') {
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit('connection', ws, req);
+    });
+  } else {
+    socket.destroy();
+  }
+});
+
+// 🧩 WebSocket logic
+wss.on('connection', (ws) => {
+  console.log('WebSocket client connected to /ws');
+
+  // wled.sendMessage({v: true})
+  ws.on('message', (msg) => {
+    console.log('SERVER:', msg.toString());
+    wled.ws.send(msg.toString());
+  });
+  wled.ws.on('message', (msg) => {
+    console.log("WLED MSG:", msg.toString().substring(0,25));
+    ws.send(msg.toString())
+  })
+
+  ws.on('close', () => {
+    console.log('WS client disconnected');
+  });
+});
+
+// ▶️ Start listening
+const PORT = 8040;
+server.listen(PORT, () => {
+  console.log(`🟢 Server running at http://localhost:${PORT}`);
+  console.log(`🧭 WebSocket path: ws://localhost:${PORT}/ws`);
+  console.log(`🌉 Proxying all other HTTP requests to → ${WLED_TARGET}`);
+});
+// Start the server
+
+
 //////////////////////////
 ///  data fetch logic  ///
 /////////////////////////

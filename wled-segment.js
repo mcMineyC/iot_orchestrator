@@ -1,9 +1,9 @@
 import {WledApi} from "./wled-api.js"
 import Integration from "./integration-base.js";
 console.log("Starting up...")
-var integration = new Integration("wled");
-console.log("[[WLED]] Connecting to", integration.params.host)
-const wled = new WledApi(integration.params.host);
+var integration = new Integration("wled-segment");
+console.log("[[WLED]] Connecting to", "localhost:8040")
+const wled = new WledApi("localhost:8040");
 await wled.init() // Fetches presets and segments
 console.log("Connected to bus and WLED instance")
 
@@ -154,4 +154,4 @@ function getLightState(){
   }
 }
 
-integration.connect() // Connect integration to the MQTT bus
+integration.connect()

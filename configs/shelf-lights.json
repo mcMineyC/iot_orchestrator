@@ -3,7 +3,7 @@
   "integrationName": "wled-segment",
   "id": "shelf-lights",
   "config": {
-    "host": "192.168.30.30",
+    "host": "192.168.30.32",
     "maxBrightness": 200,
     "segment": 4
   }
