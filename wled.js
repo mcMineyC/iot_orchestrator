@@ -68,10 +68,9 @@ wss.on('connection', (ws) => {
     requestedState = true
   }
   ws.on('message', (umsg) => {
-    console.log('SERVER:', umsg.toString());
-    try{
+    try{ // Parse message if possible
       var msg = JSON.parse(umsg.toString())
-      if(typeof msg.v !== "undefined" && msg.v === true){ // handles caching so WLED instance doesn't crash/brown out
+      if(typeof msg.v !== "undefined" && msg.v === true){ // handles caching state so WLED instance doesn't crash/brown out
         if(latestState !== null) // requested and filled
           ws.send(JSON.stringify(latestState))
         else if(requestedState == true) // requested but not filled yet
@@ -82,25 +81,18 @@ wss.on('connection', (ws) => {
         return
       }
     }catch(e){}
-    console.log("Sending message to wled:",umsg.toString())
-    wled.ws.send(umsg.toString());
+    wled.ws.send(umsg.toString()); // Forward the unparsed message from the client to WLED
   });
   wled.ws.on('message', (msg) => {
     try {
       var mmsg = JSON.parse(msg);
-      // fs.writeFileSync("./wled-message.json", JSON.stringify(msg,null,2))
-      // if (typeof msg.success !== "undefined" && msg.success === true)
-      //   console.log("Command completed successfully");
-      // else if (typeof msg.success !== "undefined" && msg.success === false)
-      //   console.log("Command failed");
       if (typeof mmsg.state !== "undefined") {
-        latestState = mmsg.state
+        latestState = mmsg.state // Cache state locally to prevent requesting it too much
       }
     } catch (e) {
       console.log("Failed to parse state:", e);
     }
-    console.log("WLED MSG:", msg.toString().substring(0,25));
-    ws.send(msg.toString())
+    ws.send(msg.toString()) // Send message from WLED to connected client
   })
 
   ws.on('close', () => {
@@ -218,4 +210,4 @@ function getLightState(){
   }
 }
 
-integration.connect() // Connect integration to the MQTT bus
+integration.connect() // Connect integration to the MQTT bus, notify online

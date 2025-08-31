@@ -38,9 +38,9 @@ export class WledApi extends EventEmitter {
       segments: {},
       websocket: {},
     }
+    // The promises need to be set up, then resolved in another setter
     this.inited.segments.promise = new Promise((resolve, reject) => {this.inited.segments.resolve = resolve; this.inited.segments.reject = reject})
-    this.inited.websocket.promise = new Promise((resolve, reject) => {this.inited.websocket.resolve = resolve; this.inited.websocket.reject = reject; console.log("\t\t\t\tSet up websocket promise")})
-    // this.inited.websocket.promise = prom // The promise needs to be set up, then resolved in another setter
+    this.inited.websocket.promise = new Promise((resolve, reject) => {this.inited.websocket.resolve = resolve; this.inited.websocket.reject = reject})
     this.inited.presets.promise = this.fetchPresets(host);
 
     // Connect to WLED websocket
@@ -55,7 +55,7 @@ export class WledApi extends EventEmitter {
           console.log("[[WLED]]: Disconnected from host")
         })
         this.ws.on('error', (e) => {
-          console.log("\t\t!!! websocket ERROR !!!")
+          // console.log("\t\t!!! websocket ERROR !!!")
           if(tries < 5)
             sleep(2000).then(() => func(func, inited, ++tries))
           else{
@@ -64,10 +64,9 @@ export class WledApi extends EventEmitter {
           }
         })
         this.ws.on("message", (data) => {
-          console.log("New message!!!");
+          // console.log("New message!!!");
           try {
             var msg = JSON.parse(data);
-            console.log(msg)
             // fs.writeFileSync("./wled-message.json", JSON.stringify(msg,null,2))
             // if (typeof msg.success !== "undefined" && msg.success === true)
             //   console.log("Command completed successfully");
@@ -81,19 +80,11 @@ export class WledApi extends EventEmitter {
             console.log("Failed to parse state:", e);
           }
         });
-      console.log("SetupWS call complete")
     }
     setupWS(setupWS, this.inited.websocket);
   }
   async init(){
-    console.log("\t\t\tAwaiting promise :)")
-
-    await this.inited.websocket.promise;
-    console.log("Have websocket")
-    await this.inited.presets.promise;
-    console.log("Have presets")
-    await this.inited.segments.promise;
-    console.log("Have segments")
+    await Promise.all([this.inited.websocket.promise, this.inited.presets.promise, this.inited.segments.promise])
   }
   async fetchPresets(host, tries=0) {
     try{
@@ -144,7 +135,7 @@ export class WledApi extends EventEmitter {
     if(isDiff(psl, this.#presets))
       this.emit("presets", psl)
     this.#presets = psl
-    console.log("Updated preset list")
+    // console.log("Updated preset list")
   }
   get presets(){
     return this.#presets
@@ -159,22 +150,22 @@ export class WledApi extends EventEmitter {
   }
 
   #updateSegments(segs) {
-    console.log("Updating segments")
+    // console.log("Updating segments")
     segs.forEach((seg, index) => {
       if (this.#segments.length <= index) {
         this.#segments.push(new WledSegment(this.ws, seg));
-        console.log("\tSeg", index,"created")
+        // console.log("\tSeg", index,"created")
       } else {
         this.#segments[index].state = seg;
       }
     });
-    console.log("\tDone segments")
+    // console.log("\tDone segments")
     this.inited.segments.resolve()
   }
 
   set state(s) {
     if (isDiff(this.#state, s)) {
-      console.log("State updated")
+      // console.log("State updated")
       this.#_power = s.on
       this.#_brightness = s.bri
       this.#_preset = s.ps
@@ -216,7 +207,6 @@ export class WledApi extends EventEmitter {
   }
 
   sendMessage(msg){
-    console.log("Main message", msg)
     this.ws.send(JSON.stringify(msg))
   }
 }
@@ -246,7 +236,7 @@ export class WledSegment extends EventEmitter {
     this.#id = state.id
     this.#name = state.n;
 
-    // console.log("Segment %d state", this.#id, state)
+    // console.log("Segment %d state", this.#id, state.on)
 
 
     if (state.on !== this.#power)
@@ -291,9 +281,7 @@ export class WledSegment extends EventEmitter {
   }
 
   set power(on) {
-    console.log("Wled-api set power")
     if (compare(on, this.#power)) return;
-    console.log("Changing power from", this.#power, "to", on)
     this.sendMessage({ on });
     this.emit("power", on);
   }
@@ -344,7 +332,6 @@ export class WledSegment extends EventEmitter {
   }
 
   sendMessage(state) {
-    console.log("Segment message", state)
     var msg = { seg: [{ ...state, id: this.#id }] }
     // fs.writeFileSync("./wled-message.json", JSON.stringify(msg, null, 2))
     this.ws.send(JSON.stringify(msg));

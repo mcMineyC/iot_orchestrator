@@ -9,11 +9,18 @@ console.log("Connected to bus and WLED instance")
 
 var seg = wled.segments[integration.params.segment];
 
+seg.on("power", (p) => {
+  console.log("\t\t\tSegment power:",p)
+})
+seg.on("state", (s) => {
+  console.log("\t\t\t\tSegment state updated", s.on)
+})
+
 //////////////////////////
 ///  data fetch logic  ///
 /////////////////////////
 integration.fetchers = {
-  "/powerState": () => {console.log("Sending powerState"); return wled.power ? "on" : "off"},
+  "/powerState": () => {console.log("Sending powerState"); return seg.power ? "on" : "off"},
   "/lightState": async () => {
     console.log("Sending lightState")
     var tempState = getLightState();
