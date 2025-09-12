@@ -148,17 +148,17 @@ integration.commandHandlers = {
     console.log("Setting color!");
     if (
       typeof message == "object" &&
-      message.hasOwnProperty("hue") &&
-      message.hasOwnProperty("saturation") &&
-      message.hue >= 0 &&
-      message.hue <= 360 &&
-      message.saturation >= 0 &&
-      message.saturation <= 100 &&
+      message.hasOwnProperty("h") &&
+      message.hasOwnProperty("s") &&
+      message.h >= 0 &&
+      message.h <= 360 &&
+      message.s >= 0 &&
+      message.s <= 100 &&
       (await device.lighting.setLightState({
         color_temp: 0,
-        hue: message.hue,
-        saturation: message.saturation,
-        brightness: message.value || undefined,
+        hue: message.h,
+        saturation: message.s,
+        brightness: message.v || undefined,
         on_off: 1,
       }))
     )
@@ -172,10 +172,10 @@ integration.commandHandlers = {
         data:
           typeof message !== "object"
             ? `Invalid color data (expected object): ${message}`
-            : message.hue < 0 ||
-                message.hue > 360 ||
-                message.saturation < 0 ||
-                message.saturation > 100
+            : message.h < 0 ||
+                message.h > 360 ||
+                message.s < 0 ||
+                message.s > 100
               ? `Invalid color: ${message}`
               : `Failed to set color: ${message}`,
       };
