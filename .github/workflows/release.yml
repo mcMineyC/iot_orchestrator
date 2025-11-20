@@ -17,10 +17,19 @@ jobs:
         run: go mod download
       - name: Build
         run: go build -o ./main .
-      - name: Test
-        run: go test ./...
+      - name: Package
+        run: |
+          mkdir iot_orchestrator
+          cp iot_orchestrator iot_orchestrator/
+          cp integrations iot_orchestrator/ -rv
+          cp apis iot_orchestrator/ -rv
+          cp config.json iot_orchestrator/
+          cp package*.json iot_orchestrator/
+          mkdir iot_orchestrator/configs
+          mkdir iot_orchestrator/schemas
+          zip -r iot_orchestrator.zip iot_orchestrator
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: release-${{ github.sha }}
-          path: ./main
+          name: iot_orchestrator
+          path: ./iot_orchestrator.zip
