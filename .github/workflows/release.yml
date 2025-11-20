@@ -21,7 +21,9 @@ jobs:
         run: |
           mv iot_orchestrator iot_o
           mkdir iot_orchestrator
+          ls . iot_orchestrator
           cp iot_o iot_orchestrator/
+          ls . iot_orchestrator
           mv iot_orchestrator/iot_o iot_orchestrator/iot_orchestrator
           cp integrations iot_orchestrator/ -rv
           cp apis iot_orchestrator/ -rv
