@@ -221,7 +221,11 @@ class Integration {
 
 
   publishData(path, payload){
-    this.client.publish(`/${this.clientId}${path}`, typeof payload === "object" ? JSON.stringify(payload) : payload)
+    this.send(`/${this.clientId}${path}`, payload)
+  }
+
+  send(path, payload){
+    this.client.publish(path, typeof payload === "object" ? JSON.stringify(payload) : payload)
   }
 }
 

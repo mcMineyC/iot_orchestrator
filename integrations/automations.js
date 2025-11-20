@@ -7,6 +7,8 @@ var integration = new Integration("automations");
 integration.fetchers = {
 }
 
+var on = true;
+
 integration.commandHandlers = {
   // Each command handler should be defined here
   // It takes the topic and message as parameters
@@ -16,8 +18,10 @@ integration.commandHandlers = {
   //
   // Can also be async
   "/all-toggle": (topic, message) => {
-    integration.publishData("/bed-bulb/power/toggle", "0");
-    integration.publishData("/broom-closet-ending/power/toggle", "0");
+    on = !on;
+    var ostr = on ? "on" : "off";
+    integration.send("/bed-bulb/power/"+ostr, "");
+    integration.send("/broom-closet-ending/power/"+ostr, "");
   },
 };
 
