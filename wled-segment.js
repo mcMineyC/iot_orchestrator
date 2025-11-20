@@ -95,11 +95,23 @@ integration.commandHandlers = {
   },
   "/light/color": (topic, message) => {
     console.log("Setting color!")
-    if(!Array.isArray(message) || message.length !== 3)
+    if(!Array.isArray(message) || message.length !== 3){
+      console.log(message)
+      if(typeof message.r != "undefined" && typeof message.g != "undefined" && typeof message.b != "undefined"){
+        message = [message.r, message.g, message.b]
+      }else{
+        return {
+          path: `/error`,
+          data: `Invalid color format.  Expected list or object with 3 items, got (${typeof message}) ${message}`
+        }
+      }
+    }
+    if(message.some((v) => v > 255 || v < 0))
       return {
         path: `/error`,
-        data: `Invalid color.  Expected list with 3 items, got (${typeof message}) ${message}`
+        data: `Invalid color.  Expected 0<=x<=255, got ${message}`
       }
+    seg.color = message;
   },
   "/light/temperature": (topic, message) => {
     console.log("Setting temperature!");

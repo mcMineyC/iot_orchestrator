@@ -12,11 +12,21 @@
       }
     },
     {
+      "name": "Discoverability",
+      "integrationName": "mdns-service",
+      "id": "mdns-discoverability",
+      "config": {
+        "name": "iot-orchestrator.instance",
+        "friendlyName": "IoT Orchestrator on jedi-swift-object",
+        "port": 1883
+      }
+    },
+    {
       "name": "Bedside Bulb",
       "integrationName": "kasa",
       "id": "bed-bulb",
       "config": {
-        "ip": "192.168.20.22",
+        "ip": "192.168.30.38",
         "type": "bulb"
       }
     },
@@ -34,7 +44,7 @@
       "integrationName": "wled",
       "id": "broom-closet-ending",
       "config": {
-        "host": "192.168.30.32",
+        "host": "broom-closet-ending.local",
         "maxBrightness": 200
       }
     },
@@ -43,7 +53,6 @@
       "integrationName": "wled-segment",
       "id": "deks-light",
       "config": {
-        "host": "192.168.30.32",
         "maxBrightness": 142,
         "segment": 3
       }
@@ -53,7 +62,6 @@
       "integrationName": "wled-segment",
       "id": "shelf-lights",
       "config": {
-        "host": "192.168.30.32",
         "maxBrightness": 200,
         "segment": 4
       }
@@ -311,6 +319,36 @@
           "path": "/light/effect",
           "type": "command",
           "fetchable": false
+        }
+      ]
+    },
+    "mdns-service": {
+      "name": "mDNS Service Advertisement",
+      "manage": true,
+      "command": "node discoverability.js",
+      "args": ["name", "friendlyName", "port"],
+      "schema": [
+        {
+          "path": "/serviceInfo",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/name",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/changeName",
+          "type": "command"
+        },
+        {
+          "path": "/addService",
+          "type": "command"
+        },
+        {
+          "path": "/restart",
+          "type": "command"
         }
       ]
     }

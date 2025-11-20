@@ -187,7 +187,7 @@ class Integration {
     delete this.routes[fullPath];
   }
 
-  // In-scope listening functions
+  // In-scope (relevant to integration) listening functions
   addCommand(path, callback){
     this.client.subscribe(`/${this.clientId}${path}`)
     this.routes.commandHandlers[path] = callback;

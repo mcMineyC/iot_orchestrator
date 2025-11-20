@@ -1,9 +1,18 @@
+
+    {
+      "name": "Broom Closet Ending",
+      "integrationName": "wled",
+      "id": "broom-closet-ending",
+      "config": {
+        "host": "192.168.30.38",
+        "maxBrightness": 200
+      }
+    },
     {
       "name": "Closet RGB",
       "integrationName": "wled-segment",
       "id": "closet-rgb",
       "config": {
-        "host": "192.168.30.30",
         "maxBrightness": 200,
         "segment": 0
       }
@@ -13,7 +22,6 @@
       "integrationName": "wled-segment",
       "id": "controller-dos-accent",
       "config": {
-        "host": "192.168.30.30",
         "maxBrightness": 200,
         "segment": 1
       }
@@ -23,7 +31,6 @@
       "integrationName": "wled-segment",
       "id": "deks-rgb",
       "config": {
-        "host": "192.168.30.30",
         "maxBrightness": 255,
         "segment": 2
       }
@@ -33,7 +40,6 @@
       "integrationName": "wled-segment",
       "id": "sick-gamer-vibezzz",
       "config": {
-        "host": "192.168.30.30",
         "maxBrightness": 255,
         "segment": 5
       }
