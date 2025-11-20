@@ -1,5 +1,5 @@
-import {WledApi} from "./wled-api.js"
-import Integration from "./integration-base.js";
+import {WledApi} from "../apis/wled-api.js"
+import Integration from "../apis/integration-base.js";
 console.log("Starting up...")
 var integration = new Integration("wled");
 console.log("[[WLED]] Connecting to", integration.params.host)

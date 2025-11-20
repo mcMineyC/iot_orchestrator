@@ -20,7 +20,7 @@ class Integration {
       getdata: {},
       commandHandlers: {},
     };
-    fs.writeFileSync(path.join(__dirname, "configs", this.config.id+".json"), JSON.stringify(this.config,null,2))
+    fs.writeFileSync(path.join(__dirname, "../configs", this.config.id+".json"), JSON.stringify(this.config,null,2))
 
     // Set up MQTT client
     this.clientId = this.config.id;
@@ -92,7 +92,10 @@ class Integration {
 
       // Top-level route handler (ex out-of-scope subscription)
       var handler = this.routes[topic];
+      console.log(topic)
+      console.log(this.routes)
       if(handler){
+        console.log("Handling via top-level route")
         // Handler exists
         // try {
         //   message = JSON.parse(message);
@@ -102,6 +105,7 @@ class Integration {
           const result = await handler(topic, message);
           if (result && result.path && result.data)
             this.client.publish(`/${this.clientId}${result.path}`, result.data.type === "object" ? JSON.stringify(result.data) : result.data);
+          return
         } catch (error) {
           console.error("Error handling message:", error);
         }
@@ -154,6 +158,24 @@ class Integration {
   }
   connect(){
     console.log("[[IntegrationBase]] Connect method called")
+    // Save final schema for future reference
+    var schemaPaths = [];
+    Object.keys(this.routes.getdata).forEach((p) => {
+      schemaPaths.push(({
+        path: p,
+        type: "data",
+        fetchable: true,
+      }));
+    });
+    Object.keys(this.routes.commandHandlers).forEach((p) => {
+      schemaPaths.push(({
+        path: p,
+        type: "command",
+        fetchable: false,
+      }));
+    });
+    fs.writeFileSync(path.join(__dirname, "../schemas", this.config.integrationName+".json"), JSON.stringify(schemaPaths,null,2))
+
     this.client.connect()
     Object.keys(this.routes.getdata).forEach(async (p) => {
       var data = await this.getData(p)

@@ -26,7 +26,7 @@
       "integrationName": "kasa",
       "id": "bed-bulb",
       "config": {
-        "ip": "192.168.30.38",
+        "ip": "192.168.30.32",
         "type": "bulb"
       }
     },
@@ -36,6 +36,15 @@
       "id": "closet-light-plug",
       "config": {
         "ip": "192.168.30.37",
+        "type": "plug"
+      }
+    },
+    {
+      "name": "Desk Lights",
+      "integrationName": "kasa",
+      "id": "desk-light-plug",
+      "config": {
+        "ip": "192.168.30.31",
         "type": "plug"
       }
     },
@@ -103,17 +112,24 @@
       }
     },
     {
-      "name": "My Arduino Test",
-      "integrationName": "test-arduino",
-      "id": "arduino-test"
+      "name": "HMI Panel",
+      "integrationName": "hmi-panel-arduino",
+      "id": "arduino-hmi-panel"
+    },
+    {
+      "name": "Automations",
+      "integrationName": "automations",
+      "id": "automations"
     }
   ],
   "knownIntegrations": {
     "greeter": {
       "name": "Greeter",
       "manage": true,
-      "command": "node greeter.js",
-      "args": ["name"],
+      "command": "node integrations/greeter.js",
+      "args": [
+        "name"
+      ],
       "schema": [
         {
           "path": "/name",
@@ -147,27 +163,25 @@
         }
       ]
     },
-    "test-arduino": {
+    "hmi-panel-arduino": {
       "name": "Arduino (via MQTT)",
       "manage": false,
       "schema": [
         {
-          "path": "/powerState",
+          "path": "/button1/pressed",
           "type": "data",
-          "fetchable": true
-        },
-        {
-          "path": "/lightState",
-          "type": "data",
-          "fetchable": true
+          "fetchable": false
         }
       ]
     },
     "kasa": {
       "name": "TP-Link Kasa",
       "manage": true,
-      "command": "node kasa.js",
-      "args": ["ip", "type"],
+      "command": "node integrations/kasa.js",
+      "args": [
+        "ip",
+        "type"
+      ],
       "schema": [
         {
           "path": "/powerState",
@@ -219,8 +233,11 @@
     "wled": {
       "name": "WLED",
       "manage": true,
-      "command": "node wled.js",
-      "args": ["ip", "maxbrightness"],
+      "command": "node integrations/wled.js",
+      "args": [
+        "ip",
+        "maxbrightness"
+      ],
       "schema": [
         {
           "path": "/powerState",
@@ -267,8 +284,12 @@
     "wled-segment": {
       "name": "WLED Segment",
       "manage": true,
-      "command": "node wled-segment.js",
-      "args": ["host", "maxBrightness", "segment"],
+      "command": "node integrations/wled-segment.js",
+      "args": [
+        "host",
+        "maxBrightness",
+        "segment"
+      ],
       "schema": [
         {
           "path": "/powerState",
@@ -325,8 +346,12 @@
     "mdns-service": {
       "name": "mDNS Service Advertisement",
       "manage": true,
-      "command": "node discoverability.js",
-      "args": ["name", "friendlyName", "port"],
+      "command": "node integrations/discoverability.js",
+      "args": [
+        "name",
+        "friendlyName",
+        "port"
+      ],
       "schema": [
         {
           "path": "/serviceInfo",
@@ -349,6 +374,19 @@
         {
           "path": "/restart",
           "type": "command"
+        }
+      ]
+    },
+    "automations": {
+      "name": "Automations",
+      "manage": true,
+      "command": "node integrations/automations.js",
+      "args": [],
+      "schema": [
+        {
+          "path": "/all-toggle",
+          "type": "command",
+          "fetchable": false
         }
       ]
     }

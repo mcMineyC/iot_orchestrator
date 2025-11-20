@@ -1,9 +1,9 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-import MdnsService from "./mdns-api.js"
+import MdnsService from "../apis/mdns-api.js"
 
-import Integration from "./integration-base.js"
-var integration = new Integration("example-integration");
+import Integration from "../apis/integration-base.js"
+var integration = new Integration("mdns-advertiser");
 
 var service = {
   instance: "instance",

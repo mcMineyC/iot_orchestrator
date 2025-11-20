@@ -1,0 +1,27 @@
+[
+  {
+    "path": "/name",
+    "type": "data",
+    "fetchable": true
+  },
+  {
+    "path": "/serviceInfo",
+    "type": "data",
+    "fetchable": true
+  },
+  {
+    "path": "/changeName",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/addService",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/restart",
+    "type": "command",
+    "fetchable": false
+  }
+]

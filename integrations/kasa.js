@@ -3,7 +3,7 @@ const require = createRequire(import.meta.url);
 const { Client } = require("tplink-smarthome-api");
 const kasa = new Client();
 
-import Integration from "./integration-base.js"
+import Integration from "../apis/integration-base.js"
 var integration = new Integration("kasa");
 
 var device;

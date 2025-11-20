@@ -1,7 +1,7 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
-import Integration from "./integration-base.js"
+import Integration from "../apis/integration-base.js"
 var integration = new Integration("example-integration");
 
 integration.fetchers = {

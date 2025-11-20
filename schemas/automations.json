@@ -1,0 +1,7 @@
+[
+  {
+    "path": "/all-toggle",
+    "type": "command",
+    "fetchable": false
+  }
+]

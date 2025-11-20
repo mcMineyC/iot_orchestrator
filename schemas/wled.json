@@ -1,0 +1,42 @@
+[
+  {
+    "path": "/powerState",
+    "type": "data",
+    "fetchable": true
+  },
+  {
+    "path": "/lightState",
+    "type": "data",
+    "fetchable": true
+  },
+  {
+    "path": "/presets",
+    "type": "data",
+    "fetchable": true
+  },
+  {
+    "path": "/power/on",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/power/off",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/power/toggle",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/light/brightness",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/light/preset",
+    "type": "command",
+    "fetchable": false
+  }
+]

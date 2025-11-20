@@ -1,0 +1,9 @@
+{
+  "name": "Desk Lights",
+  "integrationName": "kasa",
+  "id": "desk-light-plug",
+  "config": {
+    "ip": "192.168.30.31",
+    "type": "plug"
+  }
+}
