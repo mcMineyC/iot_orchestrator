@@ -23,5 +23,5 @@ const queryService = (qName) => new Promise((resolve, reject) => {
   })
   mdns.query([{name:qName, type:'TXT'}])
 })
-console.log("\n\n\n\n\n",await queryService('iot-orchestrator.instance._tcp.local'))
+console.log("\n\n\n\n\n",await queryService('_iot-orchestrator._tcp.local'))
 console.log("resolved")

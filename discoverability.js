@@ -6,6 +6,7 @@ import Integration from "./integration-base.js"
 var integration = new Integration("example-integration");
 
 var service = {
+  instance: "instance",
   name: integration.params.name,
   friendlyName: integration.params.friendlyName,
   port: integration.params.port

@@ -16,7 +16,7 @@
       "integrationName": "mdns-service",
       "id": "mdns-discoverability",
       "config": {
-        "name": "iot-orchestrator.instance",
+        "name": "iot-orchestrator",
         "friendlyName": "IoT Orchestrator on jedi-swift-object",
         "port": 1883
       }

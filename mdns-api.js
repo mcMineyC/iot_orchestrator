@@ -1,4 +1,5 @@
 import os from "os";
+import fs from "fs";
 import mdnsLib from "multicast-dns";
 const mdns = mdnsLib();
 class MdnsService {
@@ -31,17 +32,19 @@ class MdnsService {
       `Advertising service '${this.name}._tcp.local' on ${this.ip}:${this.port}...`,
     );
     mdns.on("query", function (query) {
+      // console.log(query.questions)
+      // fs.writeFileSync("./mdnsMessage.json", JSON.stringify(query,null,2))
       if (
         query.questions.some(
           (q) =>
-            services.filter((x) => q.name == `${x.name}._tcp.local`).length > 0,
+            services.filter((x) => q.name == `_${x.name}._tcp.local`).length > 0,
         )
       ) {
         console.log("Received a query");
         // Respond to the query with service details
         let answers = [];
         services
-          .filter((x) => query.questions[0].name == `${x.name}._tcp.local`)
+          .filter((x) => query.questions[0].name == `_${x.name}._tcp.local`)
           .forEach((service) => {
             let answer = serviceDefinitionToResponse(service);
             answers = answers.concat(answer);
@@ -70,32 +73,40 @@ class MdnsService {
   }
   serviceDefinitionToResponse(definition) {
     console.log(definition);
+    var hostname = os.hostname();
     return [
+
+      //Proper RFC-compliant advertisement
       {
-        name: `${definition.name}._tcp.local`,
+        name: `_${definition.name}._tcp.local`,
         type: "PTR",
         ttl: 120,
-        data: `${definition.name}._tcp.local`,
+        data: `${definition.instance}._${definition.name}._tcp.local`,
+          target: definition.ip,
+          // target: `${hostname}.local`,  // Use hostname instead of IP
       },
       {
-        name: `${definition.name}._tcp.local`,
+        name: `${definition.instance}._${definition.name}._tcp.local`,
         type: "SRV",
         ttl: 120,
         data: {
-          target: definition.ip, // Use the local IP address
-          port: definition.port, // Port where the service is running
+          priority: 0,  // Changed from 10 to 0 (default priority)
           weight: 0,
-          priority: 10,
+          port: definition.port,
+          // target: definition.ip,
+          target: `${hostname}.local`,  // Use hostname instead of IP
         },
       },
       {
-        name: definition.ip,
-        type: "A", // A record (IPv4 address)
+        name: `${hostname}.local`,
+        type: "A",
         ttl: 120,
         data: definition.ip,
       },
+
+      //Basic backward-compatible advertisement
       {
-        name: `${definition.name}._tcp.local`,
+        name: `_${definition.name}._tcp.local`,
         type: "TXT", // TXT record with metadata about the service
         ttl: 120,
         data: [
