@@ -3,5 +3,15 @@
     "path": "/all-toggle",
     "type": "command",
     "fetchable": false
+  },
+  {
+    "path": "/desk-toggle",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/wled-cycle-preset",
+    "type": "command",
+    "fetchable": false
   }
 ]

@@ -227,6 +227,19 @@ class Integration {
   send(path, payload){
     this.client.publish(path, typeof payload === "object" ? JSON.stringify(payload) : payload)
   }
+  
+  // USed for getting data of another integration, but as a promise
+  fetchDataSync(integrationName, propName){
+    return new Promise((resolve, reject) => {
+      this.listen(`/${integrationName}/${propName}`, (topic, message) => {
+        console.log("Received data!", message)
+        resolve(message)
+      })
+      this.send(`/${integrationName}/getdata/${propName}`)
+      setTimeout(() => reject(`Waiting for ${integrationName} to respond timed out`), 20000)
+    });
+
+  }
 }
 
 export default Integration;
