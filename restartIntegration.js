@@ -1,7 +1,7 @@
 import mqtt from "mqtt"
 import process from "process"
 const integration = process.argv[2] || "";
-var client = mqtt.connect("mqtt://127.0.0.1:1883", {
+var client = mqtt.connect("mqtt://jedi-smol-server.local:1883", {
   clientId: "hehetempdude", // unique id
   clean: true, // idk this helps it work
   reconnectPeriod: 1000,

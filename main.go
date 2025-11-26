@@ -58,6 +58,7 @@ type IntegrationSchema struct {
 }
 
 type IntegrationStatus struct {
+	Id							 string `json:"id"`
 	Name             string `json:"name"`
 	Status           string `json:"status"`
 	ErrorCode        int    `json:"error"`
@@ -400,6 +401,7 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 
 func publishStatus(client *mqtt.Client, entry *IntegrationEntry, status string, error interface{}, errorCode int) {
 	jsonStatus := IntegrationStatus{
+		Id: entry.Id,
 		Name:      entry.Name,
 		Status:    status,
 		ErrorCode: errorCode,
