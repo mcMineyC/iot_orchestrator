@@ -1,5 +1,24 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
+import { exec } from 'node:child_process';
+
+/**
+ * Shuts down the computer immediately
+ */
+function shutdownComputer() {
+    return new Promise((resolve, reject) => {
+        const shutdownCommand = 'sudo shutdown now';
+        
+        exec(shutdownCommand, (error, stdout, stderr) => {
+            if (error) {
+                reject(new Error(`Failed to execute shutdown command: ${error.message}`));
+                return;
+            }
+            
+            resolve();
+        });
+    });
+}
 
 import Integration from "../apis/integration-base.js"
 var integration = new Integration("example-integration");

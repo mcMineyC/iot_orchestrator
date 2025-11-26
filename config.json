@@ -12,6 +12,12 @@
       }
     },
     {
+      "name": "Poweroffer",
+      "integrationName": "poweroffer",
+      "id": "poweroff",
+      "config": {}
+    },
+    {
       "name": "Discoverability",
       "integrationName": "mdns-service",
       "id": "mdns-discoverability",
@@ -123,6 +129,11 @@
     }
   ],
   "knownIntegrations": {
+    "poweroff": {
+      "name": "Shutdown Trigger",
+      "manage": true,
+      "command": "node integrations/poweroff.js"
+    },
     "greeter": {
       "name": "Greeter",
       "manage": true,
