@@ -214,6 +214,18 @@ func main() {
 		}
 		client.Publish("/orchestrator/schemas", 0, false, schemasData)
 	})
+	c.Subscribe("/orchestrator/getdata/enabledIntegrations", 0, func(client mqtt.Client, msg mqtt.Message) {
+		// Convert statusMap to JSON
+		jsonData, err := json.Marshal(config.EnabledIntegrations)
+		if err != nil {
+			log.Printf("Failed to marshal statusMap: %v", err)
+			client.Publish("/orchestrator/error", 0, false, []byte("Failed to get status"))
+			return
+		}
+		// Publish the JSON response
+		client.Publish("/orchestrator/enabledIntegrations", 0, false, jsonData)
+	})
+
 	c.Subscribe("/orchestrator/integration/start", 0, func(client mqtt.Client, msg mqtt.Message) {
 		integrationId := string(msg.Payload())
 		if entry, ok := config.EnabledIntegrations[integrationId]; ok {
