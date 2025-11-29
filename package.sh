@@ -11,6 +11,7 @@ echo
 echo
 echo "Building new artifact"
 echo "---------------------"
+go mod download
 go build
 mkdir bundle
 mv iot_orchestrator bundle/
