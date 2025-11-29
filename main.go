@@ -15,6 +15,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"path/filepath"
 
 	mqttserver "github.com/mochi-mqtt/server/v2"
 	"github.com/mochi-mqtt/server/v2/hooks/auth"
@@ -87,6 +88,8 @@ var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 
 var config *MainConfig = nil;
 
+var integrationSchemas map[string][]IntegrationSchema;
+
 func main() {
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -125,6 +128,7 @@ func main() {
 	go func() {
 		for clientID := range disconnectChan {
 			if val, ok := statusMap[clientID]; ok && val.Status != "stopped" {
+				log.Printf("Integration %s disconnected from bus", clientID)
 				publishStatus(&c, config.EnabledIntegrations[clientID], "stopped", "disconnected from bus", 1)
 			}
 		}
@@ -189,23 +193,27 @@ func main() {
 			client.Publish("/orchestrator/error", 0, false, []byte("Failed to get status"))
 			return
 		}
+		schemasData, errr := json.Marshal(integrationSchemas)
+		if errr != nil {
+			log.Printf("Failed to marshal statusMap: %v", errr)
+			client.Publish("/orchestrator/error", 0, false, []byte("Failed to get schemas"))
+			return
+		}
 		// Publish the JSON response
 		client.Publish("/orchestrator/status", 0, false, statusData)
 		client.Publish("/orchestrator/state", 0, false, integrationData)
+		client.Publish("/orchestrator/schemas", 0, false, schemasData)
 	})
 
-	// c.Subscribe("/orchestrator/interation/start", 0, func(client mqtt.Client, msg mqtt.Message) {
-	// 	// Convert statusMap to JSON
-	// 	jsonData, err := json.Marshal(statusMap)
-	// 	if err != nil {
-	// 		log.Printf("Failed to marshal statusMap: %v", err)
-	// 		client.Publish("/orchestrator/error", 0, false, []byte("Failed to get status"))
-	// 		return
-	// 	}
-	// 	// Publish the JSON response
-	// 	client.Publish("/orchestrator/status", 0, false, jsonData)
-	// })
-
+	c.Subscribe("/orchestrator/getdata/schemas", 0, func(client mqtt.Client, msg mqtt.Message) {
+		schemasData, errr := json.Marshal(integrationSchemas)
+		if errr != nil {
+			log.Printf("Failed to marshal statusMap: %v", errr)
+			client.Publish("/orchestrator/error", 0, false, []byte("Failed to get schemas"))
+			return
+		}
+		client.Publish("/orchestrator/schemas", 0, false, schemasData)
+	})
 	c.Subscribe("/orchestrator/integration/start", 0, func(client mqtt.Client, msg mqtt.Message) {
 		integrationId := string(msg.Payload())
 		if entry, ok := config.EnabledIntegrations[integrationId]; ok {
@@ -213,7 +221,6 @@ func main() {
 			go startIntegration(config.KnownIntegrations[entry.IntegrationName], entry, &c)
 		}
 	})
-
 	go startIntegrations(config, &c)
 
 	// Run server until interrupted
@@ -416,7 +423,37 @@ func publishStatus(client *mqtt.Client, entry *IntegrationEntry, status string, 
 	statusMap[entry.Id] = &jsonStatus
 	jsonData, _ := json.Marshal(jsonStatus)
 	(*client).Publish(fmt.Sprintf("/orchestrator/status/%s", entry.Id), 0, false, jsonData)
+}
 
+func readIntegrationDefinitionSchemas() map[string][]IntegrationSchema {
+	schemaMap := make(map[string][]IntegrationSchema)
+	entries, err := os.ReadDir("schemas")
+  if err != nil {
+      fmt.Errorf("error reading directory %q: %w", "schemas", err)
+  }
+
+	for _, entry := range entries {
+		var schemaList []IntegrationSchema;
+
+		//Check to see it's a JSON file
+		if(!entry.IsDir() && filepath.Ext(entry.Name()) == ".json"){
+
+			// Read file
+			content, err := os.ReadFile("schemas/"+entry.Name())
+			if err != nil {
+				log.Fatalf("Failed to read %s: %v", "schemas/"+entry.Name(), err)
+			}
+
+			// Deserialise
+			err = json.Unmarshal([]byte(content), &schemaList)
+    	if err != nil {
+      	log.Printf("Error unmarshaling JSON for %s: %v", filepath.Base(entry.Name()), err)
+    	}
+			schemaMap[strings.Split(entry.Name(), ".")[0]] = schemaList
+		}
+	}
+
+	return schemaMap
 }
 
 type MyHooks struct {
@@ -571,5 +608,9 @@ func loadConfig(path string) *MainConfig {
 		KnownIntegrations:   configNoIntegrations.KnownIntegrations,
 		EnabledIntegrations: enabledMap,
 	}
+
+	integrationSchemas = readIntegrationDefinitionSchemas()
+	log.Println("Loaded integration schemas")
+
 	return config
 }

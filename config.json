@@ -13,8 +13,8 @@
     },
     {
       "name": "Poweroffer",
-      "integrationName": "poweroffer",
-      "id": "poweroff",
+      "integrationName": "poweroff",
+      "id": "poweroffer",
       "config": {}
     },
     {
@@ -132,7 +132,10 @@
     "poweroff": {
       "name": "Shutdown Trigger",
       "manage": true,
-      "command": "node integrations/poweroff.js"
+      "command": "node integrations/poweroff.js",
+      "args": [
+      ],
+      "schema": []
     },
     "greeter": {
       "name": "Greeter",

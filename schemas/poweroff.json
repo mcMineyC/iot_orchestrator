@@ -1,0 +1,7 @@
+[
+  {
+    "path": "/poweroff",
+    "type": "command",
+    "fetchable": false
+  }
+]
