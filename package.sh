@@ -4,7 +4,7 @@ echo
 echo
 echo "Cleaning up remnants"
 echo "--------------------"
-rm iot_orchestrator.zip -rfv 2>/dev/null
+rm bundle iot_orchestrator.zip -rfv 2>/dev/null
 
 # Build new artifact
 echo
@@ -41,8 +41,8 @@ echo "Zip it up!"
 echo "---------------------"
 zip iot_orchestrator.zip bundle -rv
 
-echo
-echo
-echo "Cleaning up"
-echo "-----------"
-rm bundle -rfv
+# echo
+# echo
+# echo "Cleaning up"
+# echo "-----------"
+# rm bundle -rfv

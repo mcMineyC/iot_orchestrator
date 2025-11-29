@@ -19,4 +19,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: iot_orchestrator
-          path: ./iot_orchestrator.zip
+          path: ./bundle
