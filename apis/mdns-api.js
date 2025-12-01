@@ -18,20 +18,21 @@ class MdnsService {
   constructor(service) {
     this.name = service.name;
     this.port = service.port;
-    this.ip = getLocalIP();
-    service.ip = this.ip;
+    //this.ip = getLocalIP(); // Depreciated in favor of multiple interface support
+    // service.ip = this.ip;
     this.services = [service];
   }
   advertise() {
-    if (!this.ip) {
-      throw new Error("Unable to find a local IP address.");
-    }
+    // if (!this.ip) {
+    //   throw new Error("Unable to find a local IP address.");
+    // }
     var services = this.services;
     var serviceDefinitionToResponse = this.serviceDefinitionToResponse;
     console.log(
       `Advertising service '${this.name}._tcp.local' on ${this.ip}:${this.port}...`,
     );
-    mdns.on("query", function (query) {
+    mdns.on("query", function (query, rinfo) {
+      // console.log("Rinfo", rinfo)
       // console.log(query.questions)
       // fs.writeFileSync("./mdnsMessage.json", JSON.stringify(query,null,2))
       if (
@@ -46,7 +47,7 @@ class MdnsService {
         services
           .filter((x) => query.questions[0].name == `_${x.name}._tcp.local`)
           .forEach((service) => {
-            let answer = serviceDefinitionToResponse(service);
+            let answer = serviceDefinitionToResponse(service, rinfo.address);
             answers = answers.concat(answer);
           });
         mdns.respond({
@@ -71,9 +72,10 @@ class MdnsService {
       `Added service ${service.name} at ${service.ip}:${service.port}`,
     );
   }
-  serviceDefinitionToResponse(definition) {
+  serviceDefinitionToResponse(definition, requestingAddress) {
     console.log(definition);
     var hostname = os.hostname();
+    definition.ip = getLocalIP(requestingAddress)
     return [
 
       //Proper RFC-compliant advertisement
@@ -82,8 +84,8 @@ class MdnsService {
         type: "PTR",
         ttl: 120,
         data: `${definition.instance}._${definition.name}._tcp.local`,
-          target: definition.ip,
-          // target: `${hostname}.local`,  // Use hostname instead of IP
+        target: definition.ip,
+        // target: `${hostname}.local`,  // Use hostname instead of IP
       },
       {
         name: `${definition.instance}._${definition.name}._tcp.local`,
@@ -123,16 +125,20 @@ class MdnsService {
   }
 }
 
-function getLocalIP() {
+function getLocalIP(matcher) { // Find IP address on same subnet as query (useful for multiple interfaces eg ethernet + Wifi)
   const networkInterfaces = os.networkInterfaces();
   let localIP = null;
+  var matcherParts = matcher.split(".").slice(0, -1).join("."); // chop off last segment, keeping subnet
 
   // Loop through network interfaces to find the first non-internal IPv4 address
   for (const interfaceName in networkInterfaces) {
     for (const interfaceInfo of networkInterfaces[interfaceName]) {
       if (interfaceInfo.family === "IPv4" && !interfaceInfo.internal) {
-        localIP = interfaceInfo.address;
-        break;
+        console.log("Trying", )
+        if(interfaceInfo.address.split(".").slice(0,-1).join(".") == matcherParts){
+          localIP = interfaceInfo.address;
+          break;
+        }
       }
     }
     if (localIP) break; // Stop once we find the first valid IP

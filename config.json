@@ -135,7 +135,13 @@
       "command": "node integrations/poweroff.js",
       "args": [
       ],
-      "schema": []
+      "schema": [
+        {
+          "path": "/poweroff",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
     },
     "greeter": {
       "name": "Greeter",
