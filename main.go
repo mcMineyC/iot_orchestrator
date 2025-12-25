@@ -271,7 +271,16 @@ func startIntegrations(config *MainConfig, client *mqtt.Client) {
 					if mainState.IntegrationStates[integration.Id] == nil {
 						mainState.IntegrationStates[integration.Id] = make(map[string]any)
 					}
-					mainState.IntegrationStates[integration.Id][schema.Path] = payload
+					var data map[string]any;
+					var saving any;
+					if s := json.Unmarshal([]byte(payload), &data); s != nil {
+						log.Printf("Was able to unmarshal (aka is JSON)")
+						saving = data
+					}else{
+						log.Printf("Was NOT able to unmarshal (aka NOT JSON)")
+						saving = payload
+					}
+					mainState.IntegrationStates[integration.Id][schema.Path] = saving
 					log.Printf("Updated state for %s: %s = %s", integration.Id, schema.Path, payload)
 					// Publish the updated state
 				})

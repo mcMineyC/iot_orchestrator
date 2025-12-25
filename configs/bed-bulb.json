@@ -3,7 +3,7 @@
   "integrationName": "kasa",
   "id": "bed-bulb",
   "config": {
-    "ip": "192.168.30.32",
+    "ip": "192.168.60.77",
     "type": "bulb"
   }
 }
