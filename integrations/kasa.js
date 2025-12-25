@@ -41,6 +41,13 @@ try {
 
 device.on("lightstate-update", (state) => {
   console.log("Light state updated:", state);
+  if(typeof state.brightness == "undefined"){
+    state = {
+      ...state,
+      ...state.dft_on_state
+    }
+  }
+  console.log("Light state updated:", state);
   integration.publishData(`/lightState`, state);
 });
 device.on("lightstate-on", (state) => {
@@ -100,7 +107,8 @@ integration.commandHandlers = {
   },
   "/power/toggle": async (topic, message) => {
     console.log("Toggling power!");
-    await device.togglePowerState();
+    await device.lighting.setLightState({on_off: !(await device.getPowerState()) ? 1 : 0})
+    // await device.togglePowerState();
     return {
       path: `/powerState`,
       data: (await device.getPowerState()) ? "on" : "off",
