@@ -4,11 +4,13 @@
   "integrationStartupTimeoutSeconds": 15,
   "enabledIntegrations": [
     {
-      "name": "My Simple Greeter",
-      "integrationName": "greeter",
-      "id": "test-greeter",
+      "name": "Spotify Controller",
+      "integrationName": "mpris-proxy",
+      "id": "spotify",
       "config": {
-        "name": "John"
+        "playerName": "spotify",
+        "hostname": "jedi-smol-server",
+        "port": 3000
       }
     },
     {
@@ -23,7 +25,7 @@
       "id": "mdns-discoverability",
       "config": {
         "name": "iot-orchestrator",
-        "friendlyName": "IoT Orchestrator on jedi-swift-object",
+        "friendlyName": "IoT Orchestrator on jedi-smol-server",
         "port": 1883
       }
     },
@@ -31,6 +33,15 @@
       "name": "Bedside Bulb",
       "integrationName": "kasa",
       "id": "bed-bulb",
+      "config": {
+        "ip": "192.168.60.54",
+        "type": "bulb"
+      }
+    },
+    {
+      "name": "Desk Bulb",
+      "integrationName": "kasa",
+      "id": "desk-bulb",
       "config": {
         "ip": "192.168.60.77",
         "type": "bulb"
@@ -59,7 +70,7 @@
       "integrationName": "wled",
       "id": "broom-closet-ending",
       "config": {
-        "host": "broom-closet-ending.local",
+        "host": "192.168.60.45",
         "maxBrightness": 200
       }
     },
@@ -129,12 +140,63 @@
     }
   ],
   "knownIntegrations": {
+    "mpris-proxy": {
+      "name": "MPRIS Proxy",
+      "manage": true,
+      "command": "node integrations/media-player.js",
+      "args": [
+        "playerName",
+        "port",
+        "hostname"
+      ],
+      "schema": [
+        {
+          "path": "/position",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/metadata",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/playbackState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/play",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/pause",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/next",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/previous",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/seek",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
     "poweroff": {
       "name": "Shutdown Trigger",
       "manage": true,
       "command": "node integrations/poweroff.js",
-      "args": [
-      ],
+      "args": [],
       "schema": [
         {
           "path": "/poweroff",

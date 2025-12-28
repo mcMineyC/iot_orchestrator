@@ -73,6 +73,10 @@ class MdnsService {
     );
   }
   serviceDefinitionToResponse(definition, requestingAddress) {
+    // if(typeof definition.instance == "undefined"){
+    //   definition.instance = definition.name.split(".")[0]
+    //   definition.name = definition.name.substring(definition.instance.length+1) // chop off instance name now
+    // }
     console.log(definition);
     var hostname = os.hostname();
     definition.ip = getLocalIP(requestingAddress)

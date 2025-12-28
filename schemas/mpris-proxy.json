@@ -1,0 +1,42 @@
+[
+  {
+    "path": "/position",
+    "type": "data",
+    "fetchable": true
+  },
+  {
+    "path": "/metadata",
+    "type": "data",
+    "fetchable": true
+  },
+  {
+    "path": "/playbackState",
+    "type": "data",
+    "fetchable": true
+  },
+  {
+    "path": "/play",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/pause",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/next",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/previous",
+    "type": "command",
+    "fetchable": false
+  },
+  {
+    "path": "/seek",
+    "type": "command",
+    "fetchable": false
+  }
+]
