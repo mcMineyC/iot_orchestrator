@@ -3,7 +3,7 @@
   "integrationName": "wled",
   "id": "broom-closet-ending",
   "config": {
-    "host": "broom-closet-ending.local",
+    "host": "192.168.60.45",
     "maxBrightness": 200
   }
 }

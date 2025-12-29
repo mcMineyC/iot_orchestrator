@@ -13,9 +13,9 @@ const io = new Server(server);
 var controlSock = false;
 var state = {
   queue: {},
-  metadata: {},
+  metadata: {title: "No song playing", artist: "N/A", album: "N/A", imageUrl: "",length:-1},
   position: -1,
-  playbackState: {},
+  playbackState: {playing: false, shuffle: false, repeat: false},
 }
 const startPlayer = async () => {
   console.log("Starting server");
@@ -86,8 +86,8 @@ const startPlayer = async () => {
   });
 
   // Start the server to listen on port 3000
-  server.listen(service.port, () => {
-    console.log("Server is running on http://0.0.0.0:"+service.port);
+  server.listen(integration.params.port, () => {
+    console.log("Server is running on http://0.0.0.0:"+integration.params.port);
     console.log("Connecting integration...")
     integration.connect()
     console.log("Integration connected!")

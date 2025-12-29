@@ -1,10 +1,8 @@
 {
   "name": "Spotify Controller",
-  "integrationName": "mpris-proxy",
+  "integrationName": "spotify-connector",
   "id": "spotify",
   "config": {
-    "hostname": "jedi-smol-server",
-    "playerName": "spotify",
     "port": 3000
   }
 }

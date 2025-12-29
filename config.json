@@ -5,11 +5,9 @@
   "enabledIntegrations": [
     {
       "name": "Spotify Controller",
-      "integrationName": "mpris-proxy",
+      "integrationName": "spotify-connector",
       "id": "spotify",
       "config": {
-        "playerName": "spotify",
-        "hostname": "jedi-smol-server",
         "port": 3000
       }
     },
@@ -140,6 +138,71 @@
     }
   ],
   "knownIntegrations": {
+    "spotify-connector": {
+      "name": "Spotify WebSocket Connector",
+      "manage": true,
+      "command": "node integrations/spotify-connector.js",
+      "args": [
+        "port"
+      ],
+      "schema": [
+        {
+          "path": "/position",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/metadata",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/playbackState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/queue",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/play",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/pause",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/next",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/previous",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/shuffle",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/repeat",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/seek",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
     "mpris-proxy": {
       "name": "MPRIS Proxy",
       "manage": true,
