@@ -1,7 +1,7 @@
 services:
   myapp:
     build: .
-    volumes:
-      - ./config:/config
+    # volumes:
+    # - ./config:/config
     # Optionally, override entrypoint or command if needed
     # entrypoint: ["/usr/local/bin/myapp"]

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.25.5-alpine AS builder
 
 WORKDIR /app
 
@@ -20,11 +20,17 @@ FROM alpine:latest
 
 WORKDIR /app
 
+# Install node and its modules
+RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main nodejs=24.11.1-r1 npm
+COPY ./package*.json /app/
+RUN npm ci
+
 # Copy the built binary
 COPY --from=builder /app/main /usr/local/bin/iot_orchestrator
 
 # Expose MQTT port
 EXPOSE 1883
 WORKDIR /config
+
 # Run the app (which handles its own mDNS advertisement)
 CMD ["/usr/local/bin/iot_orchestrator"]

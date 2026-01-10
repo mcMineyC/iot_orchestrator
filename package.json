@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "color-temperature": "^0.2.7",
+    "dbus-next": "^0.10.2",
+    "http-proxy": "^1.18.1",
+    "mqtt": "^5.13.0",
+    "multicast-dns": "^7.2.5",
+    "socket.io": "^4.8.3",
+    "tplink-smarthome-api": "^5.0.0",
+    "ws": "^8.18.2"
+  },
+  "type": "module"
+}
