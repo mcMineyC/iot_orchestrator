@@ -1,0 +1,539 @@
+{
+  "host": "0.0.0.0",
+  "port": 1883,
+  "integrationStartupTimeoutSeconds": 15,
+  "enabledIntegrations": [
+    {
+      "name": "Spotify Controller",
+      "integrationName": "spotify-connector",
+      "id": "spotify",
+      "config": {
+        "port": 3000
+      }
+    },
+    {
+      "name": "Poweroffer",
+      "integrationName": "poweroff",
+      "id": "poweroffer",
+      "config": {}
+    },
+    {
+      "name": "Discoverability",
+      "integrationName": "mdns-service",
+      "id": "mdns-discoverability",
+      "config": {
+        "name": "iot-orchestrator",
+        "friendlyName": "IoT Orchestrator on jedi-smol-server",
+        "port": 1883
+      }
+    },
+    {
+      "name": "Bedside Bulb",
+      "integrationName": "kasa",
+      "id": "bed-bulb",
+      "config": {
+        "ip": "192.168.60.54",
+        "type": "bulb"
+      }
+    },
+    {
+      "name": "Desk Bulb",
+      "integrationName": "kasa",
+      "id": "desk-bulb",
+      "config": {
+        "ip": "192.168.60.77",
+        "type": "bulb"
+      }
+    },
+    {
+      "name": "Closet Lights",
+      "integrationName": "kasa",
+      "id": "closet-light-plug",
+      "config": {
+        "ip": "192.168.30.37",
+        "type": "plug"
+      }
+    },
+    {
+      "name": "Desk Lights",
+      "integrationName": "kasa",
+      "id": "desk-light-plug",
+      "config": {
+        "ip": "192.168.30.31",
+        "type": "plug"
+      }
+    },
+    {
+      "name": "Broom Closet Ending",
+      "integrationName": "wled",
+      "id": "broom-closet-ending",
+      "config": {
+        "host": "192.168.60.45",
+        "maxBrightness": 200
+      }
+    },
+    {
+      "name": "Deks Light",
+      "integrationName": "wled-segment",
+      "id": "deks-light",
+      "config": {
+        "maxBrightness": 142,
+        "segment": 3
+      }
+    },
+    {
+      "name": "Shelf Lights",
+      "integrationName": "wled-segment",
+      "id": "shelf-lights",
+      "config": {
+        "maxBrightness": 200,
+        "segment": 4
+      }
+    },
+    {
+      "name": "Closet RGB",
+      "integrationName": "wled-segment",
+      "id": "closet-rgb",
+      "config": {
+        "maxBrightness": 200,
+        "segment": 0
+      }
+    },
+    {
+      "name": "Controller 2",
+      "integrationName": "wled-segment",
+      "id": "controller-dos-accent",
+      "config": {
+        "maxBrightness": 200,
+        "segment": 1
+      }
+    },
+    {
+      "name": "Desk RGB",
+      "integrationName": "wled-segment",
+      "id": "deks-rgb",
+      "config": {
+        "maxBrightness": 255,
+        "segment": 2
+      }
+    },
+    {
+      "name": "Gamer Vibezzz",
+      "integrationName": "wled-segment",
+      "id": "sick-gamer-vibezzz",
+      "config": {
+        "maxBrightness": 255,
+        "segment": 5
+      }
+    },
+    {
+      "name": "HMI Panel",
+      "integrationName": "hmi-panel-arduino",
+      "id": "arduino-hmi-panel"
+    },
+    {
+      "name": "Automations",
+      "integrationName": "automations",
+      "id": "automations"
+    }
+  ],
+  "knownIntegrations": {
+    "spotify-connector": {
+      "name": "Spotify WebSocket Connector",
+      "manage": true,
+      "command": "node integrations/spotify-connector.js",
+      "args": [
+        "port"
+      ],
+      "schema": [
+        {
+          "path": "/position",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/metadata",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/playbackState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/queue",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/play",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/pause",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/next",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/previous",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/shuffle",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/repeat",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/seek",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
+    "mpris-proxy": {
+      "name": "MPRIS Proxy",
+      "manage": true,
+      "command": "node integrations/media-player.js",
+      "args": [
+        "playerName",
+        "port",
+        "hostname"
+      ],
+      "schema": [
+        {
+          "path": "/position",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/metadata",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/playbackState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/play",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/pause",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/next",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/previous",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/seek",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
+    "poweroff": {
+      "name": "Shutdown Trigger",
+      "manage": true,
+      "command": "node integrations/poweroff.js",
+      "args": [],
+      "schema": [
+        {
+          "path": "/poweroff",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
+    "greeter": {
+      "name": "Greeter",
+      "manage": true,
+      "command": "node integrations/greeter.js",
+      "args": [
+        "name"
+      ],
+      "schema": [
+        {
+          "path": "/name",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/names",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/greeting",
+          "type": "data",
+          "fetchable": false
+        },
+        {
+          "path": "/greet",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/hello",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/stop",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
+    "hmi-panel-arduino": {
+      "name": "Arduino (via MQTT)",
+      "manage": false,
+      "schema": [
+        {
+          "path": "/button1/pressed",
+          "type": "data",
+          "fetchable": false
+        }
+      ]
+    },
+    "kasa": {
+      "name": "TP-Link Kasa",
+      "manage": true,
+      "command": "node integrations/kasa.js",
+      "args": [
+        "ip",
+        "type"
+      ],
+      "schema": [
+        {
+          "path": "/powerState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/lightState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/temperatureRange",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/power/toggle",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/power/on",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/power/off",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/brightness",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/temperature",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/color",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
+    "wled": {
+      "name": "WLED",
+      "manage": true,
+      "command": "node integrations/wled.js",
+      "args": [
+        "ip",
+        "maxbrightness"
+      ],
+      "schema": [
+        {
+          "path": "/powerState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/lightState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/presets",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/power/toggle",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/power/on",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/power/off",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/brightness",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/preset",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
+    "wled-segment": {
+      "name": "WLED Segment",
+      "manage": true,
+      "command": "node integrations/wled-segment.js",
+      "args": [
+        "host",
+        "maxBrightness",
+        "segment"
+      ],
+      "schema": [
+        {
+          "path": "/powerState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/lightState",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/presets",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/power/toggle",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/power/on",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/power/off",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/brightness",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/color",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/temperature",
+          "type": "command",
+          "fetchable": false
+        },
+        {
+          "path": "/light/effect",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    },
+    "mdns-service": {
+      "name": "mDNS Service Advertisement",
+      "manage": true,
+      "command": "node integrations/discoverability.js",
+      "args": [
+        "name",
+        "friendlyName",
+        "port"
+      ],
+      "schema": [
+        {
+          "path": "/serviceInfo",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/name",
+          "type": "data",
+          "fetchable": true
+        },
+        {
+          "path": "/changeName",
+          "type": "command"
+        },
+        {
+          "path": "/addService",
+          "type": "command"
+        },
+        {
+          "path": "/restart",
+          "type": "command"
+        }
+      ]
+    },
+    "automations": {
+      "name": "Automations",
+      "manage": true,
+      "command": "node integrations/automations.js",
+      "args": [],
+      "schema": [
+        {
+          "path": "/all-toggle",
+          "type": "command",
+          "fetchable": false
+        }
+      ]
+    }
+  }
+}
