@@ -59,7 +59,7 @@ type IntegrationSchema struct {
 }
 
 type IntegrationStatus struct {
-	Id							 string `json:"id"`
+	Id               string `json:"id"`
 	Name             string `json:"name"`
 	Status           string `json:"status"`
 	ErrorCode        int    `json:"error"`
@@ -292,9 +292,9 @@ func startIntegrations(config *MainConfig, client *mqtt.Client) {
 }
 
 func startIntegration(definition *IntegrationDefinition, entry *IntegrationEntry, client *mqtt.Client) {
-	  publishStatus(client, entry, "starting", nil, 0)
+	publishStatus(client, entry, "starting", nil, 0)
 
-		// Startup timeout logic
+	// Startup timeout logic
 	timeout := config.IntegrationStartupTimeoutSeconds
 	if timeout <= 0 {
 		timeout = 15 // default if not set
@@ -420,7 +420,7 @@ func monitorIntegration(definition *IntegrationDefinition, entry *IntegrationEnt
 
 func publishStatus(client *mqtt.Client, entry *IntegrationEntry, status string, error interface{}, errorCode int) {
 	jsonStatus := IntegrationStatus{
-		Id: entry.Id,
+		Id:        entry.Id,
 		Name:      entry.Name,
 		Status:    status,
 		ErrorCode: errorCode,
@@ -440,9 +440,9 @@ func publishStatus(client *mqtt.Client, entry *IntegrationEntry, status string, 
 func readIntegrationDefinitionSchemas() map[string][]IntegrationSchema {
 	schemaMap := make(map[string][]IntegrationSchema)
 	entries, err := os.ReadDir("schemas")
-  if err != nil {
-      fmt.Errorf("error reading directory %q: %w", "schemas", err)
-  }
+	if err != nil {
+		fmt.Errorf("error reading directory %q: %w", "schemas", err)
+	}
 
 	for _, entry := range entries {
 		var schemaList []IntegrationSchema;
@@ -451,16 +451,16 @@ func readIntegrationDefinitionSchemas() map[string][]IntegrationSchema {
 		if(!entry.IsDir() && filepath.Ext(entry.Name()) == ".json"){
 
 			// Read file
-			content, err := os.ReadFile("schemas/"+entry.Name())
+			content, err := os.ReadFile("schemas/" + entry.Name())
 			if err != nil {
 				log.Fatalf("Failed to read %s: %v", "schemas/"+entry.Name(), err)
 			}
 
 			// Deserialise
 			err = json.Unmarshal([]byte(content), &schemaList)
-    	if err != nil {
-      	log.Printf("Error unmarshaling JSON for %s: %v", filepath.Base(entry.Name()), err)
-    	}
+			if err != nil {
+				log.Printf("Error unmarshaling JSON for %s: %v", filepath.Base(entry.Name()), err)
+			}
 			schemaMap[strings.Split(entry.Name(), ".")[0]] = schemaList
 		}
 	}
