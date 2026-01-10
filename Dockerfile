@@ -20,10 +20,10 @@ FROM alpine:latest
 
 WORKDIR /app
 
-# Install node and its modules
+# Install node (modules must be installed before deploying config)
 RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main nodejs=24.11.1-r1 npm
-COPY ./package*.json /app/
-RUN npm ci
+# COPY ./package*.json /app/
+# RUN npm ci
 
 # Copy the built binary
 COPY --from=builder /app/main /usr/local/bin/iot_orchestrator
