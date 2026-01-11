@@ -36,7 +36,7 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/iot_orchestrator:git-${{ steps.get_git_rev.outputs.git_rev }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/iot_orchestrator
 
       # Optionally, create a Git tag for the revision (disabled by default)
       # - name: Create Git tag
