@@ -20,38 +20,44 @@
     "fetchable": true
   },
   {
+    "path": "/devices",
+    "type": "data",
+    "fetchable": true
+  },
+  {
     "path": "/play",
-    "type": "command",
-    "fetchable": false
+    "type": "command"
   },
   {
     "path": "/pause",
-    "type": "command",
-    "fetchable": false
+    "type": "command"
   },
   {
     "path": "/next",
-    "type": "command",
-    "fetchable": false
+    "type": "command"
   },
   {
     "path": "/previous",
-    "type": "command",
-    "fetchable": false
+    "type": "command"
   },
   {
     "path": "/shuffle",
-    "type": "command",
-    "fetchable": false
+    "type": "command"
   },
   {
     "path": "/repeat",
-    "type": "command",
-    "fetchable": false
+    "type": "command"
   },
   {
     "path": "/seek",
-    "type": "command",
-    "fetchable": false
+    "type": "command"
+  },
+  {
+    "path": "/transfer",
+    "type": "command"
+  },
+  {
+    "path": "/volume",
+    "type": "command"
   }
 ]
